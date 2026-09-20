@@ -56,6 +56,14 @@ export default function PRDetailPage() {
   const invalidateRunHistory = () => {
     if (prId) qc.invalidateQueries({ queryKey: ["pr-runs", prId] });
   };
+  // A settled run changes this PR's aggregates on the LIST page too (Score
+  // ring, Cost column) — both are computed fresh server-side on every
+  // `GET /repos/:id/pulls`, but the client cache was never told to refetch.
+  // Without this, the list silently keeps showing whatever it had before the
+  // run(s) started, however many follow-up reviews complete.
+  const invalidatePullsList = () => {
+    qc.invalidateQueries({ queryKey: ["pulls", repoId] });
+  };
 
   const tab = search.get("tab") ?? "overview";
   const traceRunId = search.get("trace");
@@ -156,6 +164,7 @@ export default function PRDetailPage() {
             onRunDone={() => {
               invalidateActiveRuns();
               invalidateRunHistory();
+              invalidatePullsList();
               refetchReviews();
             }}
           />
