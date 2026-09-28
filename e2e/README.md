@@ -100,3 +100,14 @@ a CI artifact by `.github/workflows/e2e-web.yml`).
 | `05-pr-diff` | PR #482 → Files changed tab → seeded file renders in the diff viewer |
 | `06-onboarding` | `/onboarding` → add-repository form renders (no submit) |
 | `07-settings` | `/settings/api-keys` + `/settings/models` → section titles render |
+
+## Architecture decisions
+
+Non-obvious choices and their alternatives are recorded as ADRs in
+[`docs/`](docs/README.md):
+
+- [ADR-001: Use agent-browser (native CDP CLI), not Playwright](docs/adr-001-agent-browser-over-playwright.md)
+- [ADR-002: Ban the AI `chat` locator — deterministic locators only](docs/adr-002-deterministic-locators-only.md)
+- [ADR-003: Flows are declarative JSON commands, not a test framework](docs/adr-003-json-flow-dsl.md)
+- [ADR-004: Run e2e against an isolated, ephemeral stack, not the shared dev stack](docs/adr-004-hermetic-stack-isolation.md)
+- [ADR-005: Flows only exercise read-only seeded data — never trigger an LLM call](docs/adr-005-read-only-seeded-flows.md)

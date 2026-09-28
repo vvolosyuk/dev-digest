@@ -47,3 +47,13 @@ mocked, so they need neither the API nor a browser. The real browser journeys
 (client + API + seeded DB) are covered by the deterministic agent-browser suite
 in [`../e2e`](../e2e/README.md) and the `e2e-web.yml` workflow. See
 [`../TESTING.md`](../TESTING.md).
+
+## Architecture decisions
+
+Non-obvious choices and their alternatives are recorded as ADRs in
+[`docs/`](docs/README.md):
+
+- [ADR-001: Fetch data only through TanStack Query hooks](docs/adr-001-data-fetching-via-hooks.md)
+- [ADR-002: Vendor shared UI kit and contracts instead of a workspace tool](docs/adr-002-vendored-shared-packages.md)
+- [ADR-003: Self-contained PascalCase component folders, colocated tests](docs/adr-003-component-folder-structure.md)
+- [ADR-004: Unit tests mock fetch; real-network coverage lives in e2e](docs/adr-004-unit-tests-mock-fetch.md)
