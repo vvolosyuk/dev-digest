@@ -3,8 +3,11 @@
 import React from "react";
 import { useTranslations } from "next-intl";
 import { Badge, Icon, CircularScore, type IconName } from "@devdigest/ui";
-import type { RunSummary, PrCommit } from "@devdigest/shared";
+import type { RunSummary, PrCommit, FindingRecord } from "@devdigest/shared";
 import { formatUsd } from "../RunTraceDrawer/helpers";
+import type { FindingsBySeverity } from "@/lib/types";
+import { SeverityCountBadges } from "@/components/SeverityCountBadges/SeverityCountBadges";
+import { FindingsHoverPopover } from "@/components/FindingsHoverPopover/FindingsHoverPopover";
 
 /**
  * PR timeline — every agent run interleaved with the PR's commits, newest-first
@@ -88,12 +91,22 @@ function tsOf(s: string | null | undefined): number {
 export function RunHistory({
   runs,
   commits = [],
+  findingsCountByRunId,
+  findingsListByRunId,
+  traceRunId = null,
   onOpenTrace,
   onGoToReview,
   onDelete,
 }: {
   runs: RunSummary[];
   commits?: PrCommit[];
+  /** Per-run non-dismissed findings, keyed by run_id — powers the severity
+   *  badges + hover popup replacing the old plain "{N} finding(s)" text. */
+  findingsCountByRunId?: Map<string, FindingsBySeverity>;
+  findingsListByRunId?: Map<string, FindingRecord[]>;
+  /** The run whose trace drawer is open, if any — suppresses that run's hover
+   *  popup while its drawer is showing. */
+  traceRunId?: string | null;
   /** Open the trace + log drawer for a run (the logs icon). */
   onOpenTrace: (runId: string) => void;
   /** Jump to this run's inline review accordion below (clicking the agent name). */
@@ -190,8 +203,15 @@ export function RunHistory({
                 </div>
               )}
               {settled && (
-                <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
-                  {t("runStatus.findings", { count: r.findings_count ?? 0 })}
+                <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, color: "var(--text-muted)" }}>
+                  <FindingsHoverPopover
+                    findings={findingsListByRunId?.get(r.run_id) ?? []}
+                    disabled={r.run_id === traceRunId}
+                  >
+                    <SeverityCountBadges
+                      counts={findingsCountByRunId?.get(r.run_id) ?? { CRITICAL: 0, WARNING: 0, SUGGESTION: 0 }}
+                    />
+                  </FindingsHoverPopover>
                   {(r.blockers ?? 0) > 0 ? t("runStatus.blockers", { count: r.blockers ?? 0 }) : ""}
                 </div>
               )}

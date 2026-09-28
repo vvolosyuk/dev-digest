@@ -152,6 +152,7 @@ export default function PRDetailPage() {
             lethalTrifecta={lethalTrifecta}
             runs={runs}
             prRuns={prRuns}
+            traceRunId={traceRunId}
             prCommits={pr.commits}
             repoFullName={repoFullName}
             headSha={pr.head_sha}

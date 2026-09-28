@@ -8,6 +8,7 @@ import { ReviewRunAccordion } from "../ReviewRunAccordion";
 import { s } from "./styles";
 import type { FindingRecord, ReviewRecord, RunSummary, PrCommit } from "@devdigest/shared";
 import type { UseMutationResult } from "@tanstack/react-query";
+import type { FindingsBySeverity } from "@/lib/types";
 
 interface FindingsTabProps {
   prId: string | null;
@@ -16,6 +17,9 @@ interface FindingsTabProps {
   lethalTrifecta: FindingRecord[];
   runs: ReviewRecord[];
   prRuns: RunSummary[] | undefined;
+  /** The run whose trace drawer is currently open (via `?trace=`), if any —
+   *  the Timeline suppresses its hover popup for that one run. */
+  traceRunId?: string | null;
   prCommits: PrCommit[];
   cancelMutation: UseMutationResult<any, any, string, any>;
   /** owner/repo + head sha — used to deep-link a finding's file:line to GitHub. */
@@ -33,6 +37,7 @@ export function FindingsTab({
   lethalTrifecta,
   runs,
   prRuns,
+  traceRunId = null,
   prCommits,
   cancelMutation,
   repoFullName,
@@ -80,6 +85,28 @@ export function FindingsTab({
     for (const run of prRuns ?? []) m.set(run.run_id, run.cost_usd ?? null);
     return m;
   }, [prRuns]);
+
+  // Per-run Findings breakdown for the Timeline — each run's own non-dismissed
+  // findings only (not the PR-wide aggregate), keyed by run_id. Built from the
+  // already-fetched `runs` (ReviewRecord[]) rather than a new endpoint, same as
+  // costByRunId above.
+  const { findingsCountByRunId, findingsListByRunId } = React.useMemo(() => {
+    const counts = new Map<string, FindingsBySeverity>();
+    const list = new Map<string, FindingRecord[]>();
+    for (const review of runs) {
+      if (!review.run_id) continue;
+      const kept = review.findings.filter((f) => !f.dismissed_at);
+      list.set(review.run_id, kept);
+      const bucket: FindingsBySeverity = { CRITICAL: 0, WARNING: 0, SUGGESTION: 0 };
+      for (const f of kept) {
+        if (f.severity === "CRITICAL" || f.severity === "WARNING" || f.severity === "SUGGESTION") {
+          bucket[f.severity] += 1;
+        }
+      }
+      counts.set(review.run_id, bucket);
+    }
+    return { findingsCountByRunId: counts, findingsListByRunId: list };
+  }, [runs]);
 
   return (
     <section>
@@ -141,6 +168,9 @@ export function FindingsTab({
           <RunHistory
             runs={prRuns ?? []}
             commits={prCommits}
+            findingsCountByRunId={findingsCountByRunId}
+            findingsListByRunId={findingsListByRunId}
+            traceRunId={traceRunId}
             onOpenTrace={handleOpenTrace}
             onGoToReview={handleGoToReview}
             onDelete={handleDelete}

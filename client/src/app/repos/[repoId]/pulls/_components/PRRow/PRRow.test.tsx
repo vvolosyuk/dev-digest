@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach, vi } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
-import type { PrMeta } from "@/lib/types";
+import type { PrMetaWithFindings } from "@/lib/types";
 import messages from "../../../../../../../messages/en/prReview.json";
 import { PRRow } from "./PRRow";
 
@@ -9,9 +9,13 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
 }));
 
+vi.mock("@/lib/hooks/reviews", () => ({
+  usePrReviews: () => ({ data: [], isLoading: false }),
+}));
+
 afterEach(cleanup);
 
-function pr(o: Partial<PrMeta> = {}): PrMeta {
+function pr(o: Partial<PrMetaWithFindings> = {}): PrMetaWithFindings {
   return {
     id: "pr-1",
     number: 482,
@@ -27,11 +31,12 @@ function pr(o: Partial<PrMeta> = {}): PrMeta {
     opened_at: "2026-06-13T18:00:00.000Z",
     updated_at: "2026-06-13T18:00:00.000Z",
     score: 61,
+    findings_by_severity: { CRITICAL: 0, WARNING: 0, SUGGESTION: 0 },
     ...o,
-  } as PrMeta;
+  } as PrMetaWithFindings;
 }
 
-function renderRow(p: PrMeta) {
+function renderRow(p: PrMetaWithFindings) {
   return render(
     <NextIntlClientProvider locale="en" messages={{ prReview: messages }}>
       <PRRow pr={p} repoId="repo-1" />

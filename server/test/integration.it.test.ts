@@ -131,6 +131,98 @@ d('Testcontainers: DB-backed routes via app.inject', () => {
     await app.close();
   });
 
+  it('GET /repos/:id/pulls tallies findings_by_severity per PR, excluding dismissed', async () => {
+    const config = loadConfig({ ...process.env, NODE_ENV: 'test' } as NodeJS.ProcessEnv);
+    const app = await buildApp({
+      config,
+      db: pg.handle.db,
+      overrides: {
+        git: new MockGitClient(),
+        github: new MockGitHubClient({
+          pulls: [
+            {
+              number: 9101,
+              title: 'PR with findings',
+              author: 'marisa.koch',
+              branch: 'feat/findings-a',
+              base: 'main',
+              head_sha: 'sha9101',
+              additions: 10,
+              deletions: 2,
+              files_count: 1,
+              status: 'open',
+              opened_at: '2026-06-01T00:00:00Z',
+              updated_at: '2026-06-01T03:00:00Z',
+            },
+            {
+              number: 9102,
+              title: 'PR with no findings',
+              author: 'marisa.koch',
+              branch: 'feat/findings-b',
+              base: 'main',
+              head_sha: 'sha9102',
+              additions: 5,
+              deletions: 1,
+              files_count: 1,
+              status: 'open',
+              opened_at: '2026-06-01T00:00:00Z',
+              updated_at: '2026-06-01T03:00:00Z',
+            },
+          ],
+        }),
+      },
+    });
+
+    const createRepo = await app.inject({
+      method: 'POST',
+      url: '/repos',
+      payload: { url: 'https://github.com/acme/findings-severity-test' },
+    });
+    const repoId = createRepo.json().id;
+
+    // Before any review exists, both PRs default to an all-zero breakdown.
+    const before = await app.inject({ method: 'GET', url: `/repos/${repoId}/pulls` });
+    const beforeList = before.json() as { number: number; id: string; findings_by_severity: unknown }[];
+    const zero = { CRITICAL: 0, WARNING: 0, SUGGESTION: 0 };
+    expect(beforeList.find((p) => p.number === 9101)?.findings_by_severity).toEqual(zero);
+    expect(beforeList.find((p) => p.number === 9102)?.findings_by_severity).toEqual(zero);
+
+    const prWithFindingsId = beforeList.find((p) => p.number === 9101)!.id;
+    const { workspaceId } = await seed(pg.handle.db);
+    const [review] = await pg.handle.db
+      .insert(t.reviews)
+      .values({ workspaceId, prId: prWithFindingsId, kind: 'review' })
+      .returning();
+    const findingBase = {
+      reviewId: review!.id,
+      file: 'src/a.ts',
+      startLine: 1,
+      endLine: 1,
+      category: 'bug',
+      title: 'test finding',
+      rationale: 'because',
+      confidence: 0.9,
+    };
+    await pg.handle.db.insert(t.findings).values([
+      { ...findingBase, severity: 'CRITICAL' },
+      { ...findingBase, severity: 'CRITICAL' },
+      { ...findingBase, severity: 'WARNING' },
+      // Dismissed — must be excluded from the tally.
+      { ...findingBase, severity: 'SUGGESTION', dismissedAt: new Date() },
+    ]);
+
+    const after = await app.inject({ method: 'GET', url: `/repos/${repoId}/pulls` });
+    const afterList = after.json() as { number: number; findings_by_severity: unknown }[];
+    expect(afterList.find((p) => p.number === 9101)?.findings_by_severity).toEqual({
+      CRITICAL: 2,
+      WARNING: 1,
+      SUGGESTION: 0,
+    });
+    expect(afterList.find((p) => p.number === 9102)?.findings_by_severity).toEqual(zero);
+
+    await app.close();
+  });
+
   it('POST /repos/:id/poll syncs PR list and does NOT trigger a review', async () => {
     const config = loadConfig({ ...process.env, NODE_ENV: 'test' } as NodeJS.ProcessEnv);
     const app = await buildApp({

@@ -86,8 +86,8 @@ and `client/src/vendor/shared` — edited identically in both, no sync tooling e
 
 ## Out of scope
 
-- The mockups' `FINDINGS` column on the PR list — doesn't exist in the current
-  codebase at all (unrelated pre-existing gap).
+- The mockups' `FINDINGS` column on the PR list — implemented separately, see
+  `specs/findings-severity.md`.
 - OpenAI/Anthropic real-cost sourcing — both currently use a static price
   table (`server/src/adapters/llm/pricing.ts`); no change here.
 - Partial-cost recovery on a mid-run failure — matches existing token
