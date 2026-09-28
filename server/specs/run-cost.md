@@ -1,21 +1,20 @@
-# Run cost tracking (L01)
+# Run cost tracking — server (L01)
 
-Status: implementing.
+Status: implemented.
+
+See [`client/specs/run-cost.md`](../../client/specs/run-cost.md) for the
+frontend half of this feature (how cost is displayed, formatted, and tested
+on the three screens listed below).
 
 ## Context
 
 `reviewer-core`'s `reviewPullRequest()` already computes `ReviewOutcome.costUsd`
 (summed across every LLM call in a run, sourced from OpenRouter's reported
-`usage.cost`), but the server drops it — `run-executor.ts` never persists or
-surfaces it. This spec adds cost end-to-end to three screens:
-
-1. **Pull Requests list** — a new Cost column, summed across every run ever
-   made on that PR (all agents, all time — a "total spend" figure, not just the
-   latest review round).
-2. **PR detail → Agent runs tab** — cost shown next to the timestamp in both the
-   Timeline (`RunHistory`) and Review Runs (`ReviewRunAccordion`) sections.
-3. **Run trace drawer → Stats** — a Cost tile alongside Duration / Tokens /
-   Findings.
+`usage.cost`), but the server dropped it — `run-executor.ts` never persisted
+or surfaced it. This spec adds the backend plumbing to get cost from that
+computed-but-discarded value through to the API, for three consuming screens:
+the Pull Requests list's Cost column, the PR detail Agent-runs tab (Timeline +
+Review Runs), and the run trace drawer's Stats tile.
 
 Cost data is sourced from **OpenRouter only** for now (the only provider that
 returns a real per-call cost). No static price-table fallback is added for
@@ -30,13 +29,14 @@ OpenAI/Anthropic in this pass.
    `tokensIn: 0, tokensOut: 0` zeroing on the failure path (`run-executor.ts`'s
    catch block never has partial per-chunk state to report — a pre-existing
    limitation this feature doesn't change).
-3. **Null cost** (no price data for the model) renders as `—`, same convention
-   as PrMeta's existing `score: null` handling. No estimate is substituted.
-4. **Shared zod fields are `.nullish()`, not `.nullable()`** — required to keep
-   `server/test/contracts.test.ts`'s `RunTrace.parse()` fixture and
-   `client/.../RunTraceDrawer.test.tsx`'s `TRACE` fixture (both omit
-   `cost_usd`) passing/type-checking unmodified, and to gracefully read old
-   `run_traces` JSONB rows persisted before this column existed.
+3. **Shared zod fields are `.nullish()`, not `.nullable()`** — required to keep
+   `server/test/contracts.test.ts`'s `RunTrace.parse()` fixture and the
+   client's `RunTraceDrawer.test.tsx` `TRACE` fixture (both omit `cost_usd`)
+   passing/type-checking unmodified, and to gracefully read old `run_traces`
+   JSONB rows persisted before this column existed.
+
+(The "null cost renders as `—`" decision is a display concern — see
+`client/specs/run-cost.md`.)
 
 ## Data model
 
@@ -67,35 +67,16 @@ and `client/src/vendor/shared` — edited identically in both, no sync tooling e
   query (alongside the existing `latestReviewByPr` score query), mapped into
   each returned PR as `cost_usd`.
 
-## Frontend changes
-
-- `client/src/app/repos/[repoId]/pulls/{constants,styles}.ts` +
-  `_components/PRRow/PRRow.tsx` — new Cost column between Status and Updated.
-- `_components/FindingsTab/FindingsTab.tsx` — builds a `runId → cost_usd` map
-  from `prRuns` and passes it into each `ReviewRunAccordion`.
-- `_components/RunHistory/RunHistory.tsx` — cost next to the run timestamp.
-- `_components/ReviewRunAccordion/ReviewRunAccordion.tsx` — new `cost` prop,
-  rendered between the score badge and the timestamp.
-- `_components/RunTraceDrawer/_components/TraceBody/TraceBody.tsx` — 4th Stat
-  tile.
-- `_components/RunTraceDrawer/helpers.ts` — new `formatUsd(cost)` helper
-  (handles `null`/`undefined` → `—`), reused by all of the above instead of
-  duplicating formatting logic.
-- `client/messages/en/prReview.json` (`list.columns.cost`) and
-  `client/messages/en/runs.json` (`stat.cost`) — new i18n keys.
-
 ## Out of scope
 
 - The mockups' `FINDINGS` column on the PR list — implemented separately, see
-  `specs/findings-severity.md`.
+  `server/specs/findings-severity.md` / `client/specs/findings-severity.md`.
 - OpenAI/Anthropic real-cost sourcing — both currently use a static price
   table (`server/src/adapters/llm/pricing.ts`); no change here.
 - Partial-cost recovery on a mid-run failure — matches existing token
   behavior, not newly introduced or fixed by this feature.
 
-## Testing strategy
-
-See implementation PR / commit for the concrete test additions. Summary:
+## Testing strategy (server)
 
 - **server-unit**: `contracts.test.ts` needs no edit (nullish fields keep
   existing fixtures valid); `price-book.test.ts` unaffected.
@@ -105,10 +86,7 @@ See implementation PR / commit for the concrete test additions. Summary:
     `MockLLMProvider`'s fixed `costUsd: 0.001`; add a multi-agent case; add a
     failed-run case asserting `cost_usd === 0`.
   - `integration.it.test.ts` — new coverage for the PR-list `SUM(...) GROUP BY
-    prId` query (no existing test touches this route's aggregation today).
-- **client**: extend `RunTraceDrawer.test.tsx` and `RunHistory.test.tsx`
-  fixtures; add net-new `PRRow.test.tsx` and `ReviewRunAccordion.test.tsx`
-  (neither exists today) covering the cost display + `—` fallback.
-- **Manual**: run a real review against PR #482 via a live OpenRouter key and
-  confirm cost renders on all three screens — the only step that exercises the
-  actual `usage.cost` path, since every automated test above uses the mock.
+    prId` query (no existing test touches this route's aggregation today —
+    still an open gap, see `INSIGHTS.md`).
+
+For frontend and e2e test coverage, see `client/specs/run-cost.md`.
