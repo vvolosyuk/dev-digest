@@ -28,7 +28,7 @@ trusted.
   deterministic post-hoc check is required for the grounding guarantee to
   actually hold.
 - **Recover a "close enough" line when the cited one doesn't match** —
-  rejected: `reviewer-core/CLAUDE.md` explicitly forbids weakening the gate
+  rejected: `reviewer-core/AGENTS.md` explicitly forbids weakening the gate
   to "recover" a missing finding; a wrong citation must be dropped, not
   patched.
 

@@ -34,6 +34,6 @@ colocated component folders.
 - Consistent, predictable location for any component and its test.
 - The `_components/` leading underscore must be preserved — accidentally
   dropping it makes the folder routable and breaks the App Router
-  (documented in `client/CLAUDE.md` naming conventions).
+  (documented in `client/AGENTS.md` naming conventions).
 - Page files stay reviewable at a glance since they don't carry feature
   logic.

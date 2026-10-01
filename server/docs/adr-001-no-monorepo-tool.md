@@ -33,7 +33,7 @@ consumes it directly via tsx/vitest, with no build/publish step.
 ## Consequences
 
 - Package folder renames require updating every tsconfig path alias that
-  points at it (top-level `CLAUDE.md` "Naming conventions").
+  points at it (top-level `AGENTS.md` "Naming conventions").
 - Every package must expose the same script names (`dev`/`build`/`test`/
   `typecheck`) regardless of runner, since there's no workspace-level task
   runner to normalize this.

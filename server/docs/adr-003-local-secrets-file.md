@@ -28,7 +28,7 @@ every secret optional so the server boots with zero keys configured.
   the host machine with only Postgres in Docker; a vault is infrastructure
   the local-first course starter deliberately avoids.
 - **Storing keys in Postgres** — rejected: secrets should never be in the
-  database (or git), stated explicitly in the top-level `CLAUDE.md`.
+  database (or git), stated explicitly in the top-level `AGENTS.md`.
 
 ## Consequences
 

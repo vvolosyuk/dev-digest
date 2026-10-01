@@ -20,7 +20,7 @@ empty until a later lesson's code starts using them.
 
 - **Add tables incrementally, one migration per lesson** — rejected: would
   mean every lesson ships its own migration (and its own migration-journal
-  risk, see `server/CLAUDE.md`'s note on migration `2006964`), multiplying
+  risk, see `server/AGENTS.md`'s note on migration `2006964`), multiplying
   the chances of migration-journal breakage across 8 lessons.
 - **Separate "future schema" migrations applied only when a lesson is
   reached** — rejected: adds a second migration-sequencing concept (which
@@ -31,9 +31,9 @@ empty until a later lesson's code starts using them.
 
 - A student or reviewer who finds an empty, apparently unused table should
   not assume it's dead code or a bug — it's intentionally there for a later
-  lesson (the top-level `CLAUDE.md` makes the same point about missing
+  lesson (the top-level `AGENTS.md` makes the same point about missing
   features; this ADR extends the idea to schema).
 - The schema is the course's most stable artifact — a migration in the
   starter can't easily be un-shipped once students have run `db:migrate`
-  against it, so schema mistakes in 0000 are costly. Per `server/CLAUDE.md`,
+  against it, so schema mistakes in 0000 are costly. Per `server/AGENTS.md`,
   migrations are never edited/deleted after the fact, only added to.

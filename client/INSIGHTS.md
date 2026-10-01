@@ -6,7 +6,7 @@
 
 ## Codebase Patterns
 
-- 2026-09-17 — Component tests don't mock global `fetch` despite `CLAUDE.md` saying "fetch mocked"; they `vi.mock()` the specific data hook module by relative path instead. Mock the hook, not `fetch`, when writing a new component test. (`client/src/app/agents/[id]/_components/AgentEditor/AgentEditor.test.tsx:9`)
+- 2026-09-17 — Component tests don't mock global `fetch` despite `AGENTS.md` saying "fetch mocked"; they `vi.mock()` the specific data hook module by relative path instead. Mock the hook, not `fetch`, when writing a new component test. (`client/src/app/agents/[id]/_components/AgentEditor/AgentEditor.test.tsx:9`)
 - 2026-09-20 — `client/src/vendor/shared` and `server/src/vendor/shared` are NOT identical mirrors of `@devdigest/shared` — client's copy is a trimmed subset (confirmed via diff: missing CI/GitHubClient-only types like `commitFiles`/`sync`/`diffNameOnly`). There's no sync tooling in-repo, so any shared-contract field consumed by both packages must be hand-added to both `contracts/*.ts` copies identically. (`client/src/vendor/shared/contracts/trace.ts`, `server/src/vendor/shared/contracts/trace.ts`)
 - 2026-09-20 — New fields on `RunStats`/`RunSummary`/`PrMeta` (`vendor/shared/contracts/trace.ts`, `platform.ts`) must be `z.number().nullish()`, not `.nullable()`. `.nullable()` requires the key present, which breaks existing fixtures that omit it (`server/test/contracts.test.ts`'s `RunTrace.parse()`, `RunTraceDrawer.test.tsx`'s `TRACE`) and breaks reading old persisted `run_traces` JSONB rows from before the field existed — `getRunTrace()` casts without re-validating, so a missing key silently becomes `undefined`, not `null`.
 

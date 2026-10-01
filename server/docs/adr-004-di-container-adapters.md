@@ -35,5 +35,5 @@ hitting real services. `reviewer-core` itself only depends on an injected
 - Adding a new external integration means adding a port + adapter + mock, not
   just an SDK import — slightly more ceremony for the safety.
 - `reviewer-core` stays a pure engine (no DB/GitHub/filesystem access, per its
-  own `CLAUDE.md`) because the only side effect it's allowed is the injected
+  own `AGENTS.md`) because the only side effect it's allowed is the injected
   `LLMProvider`.
