@@ -5,18 +5,30 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Icon, Avatar, Badge, CircularScore } from "@devdigest/ui";
-import type { PrMeta } from "@/lib/types";
+import type { PrMetaWithFindings } from "@/lib/types";
 import { SIZE_COLOR, STATUS_META } from "../../constants";
 import { relativeTime, sizeOf } from "../../helpers";
 import { s } from "../../styles";
+import { formatUsd } from "@/app/repos/[repoId]/pulls/[number]/_components/RunTraceDrawer/helpers";
+import { usePrReviews } from "@/lib/hooks/reviews";
+import { SeverityCountBadges } from "@/components/SeverityCountBadges/SeverityCountBadges";
+import { FindingsHoverPopover } from "@/components/FindingsHoverPopover/FindingsHoverPopover";
 
-export function PRRow({ pr, repoId }: { pr: PrMeta; repoId: string }) {
+export function PRRow({ pr, repoId }: { pr: PrMetaWithFindings; repoId: string }) {
   const t = useTranslations("prReview");
   const router = useRouter();
   const [h, setH] = React.useState(false);
+  const [findingsHover, setFindingsHover] = React.useState(false);
   const st = STATUS_META[pr.status] ?? STATUS_META.needs_review!;
   const { size, lines } = sizeOf(pr);
   const reviewed = pr.score != null; // null score ⇒ PR has never been reviewed
+  // Lazily fetch this PR's findings only once the Findings cell is hovered —
+  // the list itself only carries the lightweight per-severity counts.
+  const { data: prReviews, isLoading: findingsLoading } = usePrReviews(pr.id, findingsHover);
+  const findings = React.useMemo(
+    () => (prReviews ?? []).flatMap((r) => r.findings).filter((f) => !f.dismissed_at),
+    [prReviews],
+  );
   return (
     <div
       onMouseEnter={() => setH(true)}
@@ -53,10 +65,22 @@ export function PRRow({ pr, repoId }: { pr: PrMeta; repoId: string }) {
           <span style={s.muted}>—</span>
         )}
       </div>
+      <div onClick={(e) => e.stopPropagation()}>
+        <FindingsHoverPopover
+          findings={findings}
+          loading={findingsLoading}
+          onHoverChange={setFindingsHover}
+        >
+          <SeverityCountBadges counts={pr.findings_by_severity} />
+        </FindingsHoverPopover>
+      </div>
       <div>
         <Badge dot color={st.c} bg="transparent">
           {t(`list.status.${st.labelKey}`)}
         </Badge>
+      </div>
+      <div className="mono" style={s.costCell}>
+        {formatUsd(pr.cost_usd)}
       </div>
       <div style={s.updatedCell}>{relativeTime(pr.updated_at)}</div>
     </div>
