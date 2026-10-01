@@ -1,0 +1,90 @@
+{
+  "$comment": "Single source of truth for which skill reviews which file. Consumed by scripts/collect-diff.mjs. Globs: ** = any depth, * = within a segment, {a,b} = alternation. A file may match several skills. To cover a new skill, add a rule here (and keep the group accurate: UI skills must never get backend files and vice versa).",
+
+  "ignoreSkills": ["engineering-insights", "mermaid-diagram", "pr-self-review", "skills-lock"],
+
+  "binaryExtensions": ["png", "jpg", "jpeg", "gif", "webp", "ico", "svg", "pdf", "woff", "woff2", "ttf", "zip", "mp4"],
+
+  "exclude": [
+    { "glob": "**/pnpm-lock.yaml", "level": "skip", "reason": "lock file (never hand-edited)" },
+    { "glob": "**/package-lock.json", "level": "skip", "reason": "lock file (never hand-edited)" },
+    { "glob": "server/clones/**", "level": "skip", "reason": "git-ignored runtime data" },
+    { "glob": "**/vendor/**", "level": "warn", "reason": "vendored code: edit at the source lesson, not ad hoc" },
+    { "glob": "server/src/db/migrations/**", "level": "warn", "reason": "migrations are not edited by hand (see server/AGENTS.md)" }
+  ],
+
+  "rules": [
+    {
+      "skill": "react-best-practices",
+      "group": "ui",
+      "include": ["client/src/**/*.{ts,tsx}"],
+      "exclude": ["**/*.test.{ts,tsx}", "client/src/test/**"]
+    },
+    {
+      "skill": "next-best-practices",
+      "group": "ui",
+      "include": ["client/src/app/**", "client/next.config.*", "client/src/middleware.*"],
+      "exclude": ["**/*.css", "**/*.test.{ts,tsx}"]
+    },
+    {
+      "skill": "next-best-practices",
+      "group": "ui",
+      "include": ["client/src/**/*.tsx"],
+      "exclude": ["**/*.test.tsx"],
+      "contentPattern": "['\"]use (client|server)['\"]"
+    },
+    {
+      "skill": "react-testing-library",
+      "group": "ui",
+      "include": ["client/**/*.test.{ts,tsx}", "client/src/test/**"]
+    },
+
+    {
+      "skill": "onion-architecture",
+      "group": "backend",
+      "include": ["server/src/modules/**", "server/src/adapters/**", "server/src/platform/**", "reviewer-core/src/**"]
+    },
+    {
+      "skill": "fastify-best-practices",
+      "group": "backend",
+      "include": ["server/src/modules/**/routes.ts", "server/src/app.ts", "server/src/server.ts", "server/src/platform/**"],
+      "exclude": ["**/*.test.ts"]
+    },
+    {
+      "skill": "drizzle-orm-patterns",
+      "group": "backend",
+      "include": ["server/src/db/**", "server/src/modules/**/repository.ts", "server/src/modules/**/repository/**"],
+      "exclude": ["**/*.test.ts"]
+    },
+    {
+      "skill": "postgresql-table-design",
+      "group": "backend",
+      "include": ["server/src/db/schema.ts", "server/src/db/schema/**"]
+    },
+
+    {
+      "skill": "zod",
+      "group": "cross-cutting",
+      "include": ["client/src/**/*.{ts,tsx}", "server/src/**/*.ts", "reviewer-core/src/**/*.ts"],
+      "exclude": ["**/*.test.{ts,tsx}"],
+      "contentPattern": "from ['\"]zod['\"]|\\bz\\.(object|string|number|enum|array|union)\\b"
+    },
+    {
+      "skill": "typescript-expert",
+      "group": "cross-cutting",
+      "include": ["client/src/**/*.{ts,tsx}", "server/src/**/*.ts", "server/test/**/*.ts", "reviewer-core/{src,test}/**/*.ts", "e2e/**/*.ts"]
+    },
+    {
+      "skill": "security",
+      "group": "cross-cutting",
+      "include": ["client/src/**/*.{ts,tsx}", "server/src/**/*.ts", "reviewer-core/src/**/*.ts", "e2e/**/*.ts", "scripts/**/*.{mjs,js,sh,ps1,bat}"],
+      "exclude": ["**/*.test.{ts,tsx}"],
+      "contentPattern": "auth|token|secret|passw|api[_-]?key|process\\.env|child_process|\\bexec(Sync)?\\(|\\bspawn\\(|readFile|writeFile|\\beval\\(|dangerouslySetInnerHTML|innerHTML|req\\.(body|query|params|headers)|\\.query\\(|sql`|\\bsql\\.raw|cors|cookie|crypto|fetch\\(|redirect\\("
+    },
+    {
+      "skill": "security",
+      "group": "cross-cutting",
+      "include": [".github/**", "docker-compose.yml", ".env*"]
+    }
+  ]
+}

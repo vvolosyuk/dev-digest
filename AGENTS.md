@@ -42,6 +42,7 @@ TypeScript everywhere · Postgres + pgvector (Docker).
 - Server does **not** run migrations on boot — `cd server && pnpm db:migrate` is manual.
 - Secrets live in `~/.devdigest/secrets.json` (mode 0600), never in git/DB; `process.env` is the fallback.
 - `server/package.json` is `skip-worktree` (a local variant diverges from the committed file) — CI invokes `vitest` directly rather than package scripts.
+- Run `/pr-self-review` before opening a PR (`gh pr create` is refused by a `.claude/settings.json` hook unless the last run is a fresh PASS); any CRITICAL finding = BLOCKED, don't open or merge. Routing of skills to files: `.claude/skills/pr-self-review/references/routing.json`.
 - This is the **course starter**: features listed as later lessons (L02+) in `README.md`'s lesson table are intentionally absent — don't treat their absence as a bug.
 
 ## Do not touch
