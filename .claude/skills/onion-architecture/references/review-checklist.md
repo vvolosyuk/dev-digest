@@ -19,8 +19,7 @@ cd server && npx depcruise src --config ../.claude/skills/onion-architecture/tem
 
 ## Known pre-existing violations (as of v1.0.0 — don't widen, fix when touching)
 
-- `modules/pulls/routes.ts` — Drizzle + `container.db` inline (~22 `container.*` uses; delete/insert `prFiles`/`prCommits`, aggregates).
-- `modules/settings/routes.ts` (8), `modules/polling/routes.ts` (4), `modules/workspace/routes.ts` (1) — direct `container.db`.
+- ~~`modules/pulls/routes.ts`, `modules/settings/routes.ts`, `modules/polling/routes.ts`, `modules/workspace/routes.ts` — direct `container.db`.~~ Fixed 2026-10-01: all four now have `service.ts`/`repository.ts` (`pulls`'s repository split into `repository/{repo,pull,aggregates}.repo.ts`, mirroring `reviews`). No `routes.ts` under `server/src/modules` touches Drizzle/`container.db`/adapters directly anymore — see `server/INSIGHTS.md`.
 - `modules/settings/feature-models.ts`, `modules/repos/helpers.ts` — query/schema in helper files.
 - `modules/reviews/run-executor.ts`, `diff-loader.ts`, `service.ts` — `$inferSelect` / `AgentRow` leak.
 - `adapters/auth/local.ts` — imports constants from `db/seed.ts`.

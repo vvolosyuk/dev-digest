@@ -1,6 +1,5 @@
 import type { FindingRecord } from "@devdigest/shared";
-
-const SEVERITY_ORDER: Record<string, number> = { CRITICAL: 0, WARNING: 1, SUGGESTION: 2 };
+import { SEVERITY_ORDER } from "@/lib/severity";
 
 /** Sort by severity (worst first), then by confidence (highest first) within
  *  the same severity — the priority order shown in the hover popover. */

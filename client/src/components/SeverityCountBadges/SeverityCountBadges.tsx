@@ -6,8 +6,7 @@
 import React from "react";
 import { SeverityBadge } from "@devdigest/ui";
 import type { FindingsBySeverity } from "@/lib/types";
-
-const ORDER: (keyof FindingsBySeverity)[] = ["CRITICAL", "WARNING", "SUGGESTION"];
+import { SEVERITY_DISPLAY_ORDER } from "@/lib/severity";
 
 export function SeverityCountBadges({ counts }: { counts: FindingsBySeverity }) {
   const total = counts.CRITICAL + counts.WARNING + counts.SUGGESTION;
@@ -16,7 +15,7 @@ export function SeverityCountBadges({ counts }: { counts: FindingsBySeverity }) 
   }
   return (
     <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-      {ORDER.filter((sev) => counts[sev] > 0).map((sev) => (
+      {SEVERITY_DISPLAY_ORDER.filter((sev) => counts[sev] > 0).map((sev) => (
         <SeverityBadge key={sev} severity={sev} count={counts[sev]} compact />
       ))}
     </div>

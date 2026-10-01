@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { CiFailOn, Provider, ReviewStrategy } from '@devdigest/shared';
+import { Agent, CiFailOn, Provider, ReviewStrategy } from '@devdigest/shared';
 import { getContext } from '../_shared/context.js';
 import { IdParams } from '../_shared/schemas.js';
 import { NotFoundError } from '../../platform/errors.js';
@@ -30,12 +30,17 @@ const VersionParams = z.object({
  *   GET    /providers/:id/models    → dynamic model list for a provider (editor)
  */
 
-const CreateAgentBody = z.object({
+// Derived from the shared `Agent` entity contract (omit the server-assigned
+// `id`/`version`) rather than hand-duplicated, so a field added to `Agent`
+// flows through automatically. The `.extend()` re-tightens the fields this
+// request body validates more strictly than the entity does (required +
+// non-empty `name`/`model`/`system_prompt`) and keeps the rest optional for
+// create.
+const CreateAgentBody = Agent.omit({ id: true, version: true }).extend({
   name: z.string().min(1),
-  description: z.string().optional(),
-  provider: Provider,
   model: z.string().min(1),
   system_prompt: z.string().min(1),
+  description: z.string().optional(),
   output_schema: z.unknown().optional(),
   strategy: ReviewStrategy.optional(),
   ci_fail_on: CiFailOn.optional(),
@@ -43,18 +48,7 @@ const CreateAgentBody = z.object({
   enabled: z.boolean().optional(),
 });
 
-const UpdateAgentBody = z.object({
-  name: z.string().min(1).optional(),
-  description: z.string().optional(),
-  provider: Provider.optional(),
-  model: z.string().min(1).optional(),
-  system_prompt: z.string().min(1).optional(),
-  output_schema: z.unknown().optional(),
-  strategy: ReviewStrategy.optional(),
-  ci_fail_on: CiFailOn.optional(),
-  repo_intel: z.boolean().optional(),
-  enabled: z.boolean().optional(),
-});
+const UpdateAgentBody = CreateAgentBody.partial();
 
 /** Either set the whole ordered set (`skill_ids`) or link one (`skill_id`). */
 const SetSkillsBody = z
