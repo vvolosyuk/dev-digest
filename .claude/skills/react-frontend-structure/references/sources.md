@@ -1,15 +1,29 @@
-# React/frontend structure — sourced reference
+# Sources, versions, changelog
 
-**Version:** 0.1.0
+**Skill version: 1.0.0** (2026-10-02) — semver: major = a placement rule in
+`SKILL.md` changes, minor = new rule/reference or sources added/dropped,
+patch = wording.
 
-Status: **sources only** — this is the research/citation base for a future
-`react-frontend-structure` skill (structural/organizational guidance, as
-opposed to the anti-pattern catalogs already covered by
-[`react-best-practices`](../react-best-practices/SKILL.md) and
-[`next-best-practices`](../next-best-practices/SKILL.md)). No `SKILL.md`
-exists here yet — that gets written from this list in a later pass, which
-should bump this file to `1.0.0`. Bump the minor/patch version on any pass
-that adds, drops, or revises sources below.
+## Changelog
+
+- **1.0.0** (2026-10-02) — `SKILL.md` written from this list and mapped onto
+  `client/AGENTS.md`; this file moved from `README.md` to
+  `references/sources.md`; `references/review-checklist.md` added.
+- **0.1.0** (2026-10-01) — sources only (this list), no `SKILL.md`.
+
+## Stack versions this skill was written against (`client/package.json`)
+
+next ^15.1.3 · react ^19.0.0 · @tanstack/react-query ^5.62.8 · next-intl
+^3.26.0 · zod ^3.24.1 · typescript ^5.7.2. Re-check the App Router section when Next.js changes major.
+
+## Scope
+
+The research/citation base for the `react-frontend-structure` skill
+(structural/organizational guidance, as opposed to the anti-pattern catalogs
+already covered by [`react-best-practices`](../../react-best-practices/SKILL.md)
+and [`next-best-practices`](../../next-best-practices/SKILL.md)). Bump the
+minor/patch version above on any pass that adds, drops, or revises sources
+below.
 
 This compiles and annotates the most authoritative, current (2024–2026,
 React 18/19 and Next.js 15 era) sources found on six sub-topics: component

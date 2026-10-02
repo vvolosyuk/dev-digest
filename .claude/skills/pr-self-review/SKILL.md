@@ -2,6 +2,7 @@
 name: pr-self-review
 description: Pre-PR self review of all local changes (branch commits + staged + unstaged + untracked). Routes the diff to the project's review skills — UI skills only on client files, backend/architecture skills only on server and reviewer-core files — and returns a PASS / BLOCKED / INCOMPLETE verdict. Any CRITICAL finding means BLOCKED: do not open or merge the PR. Report only; applies no fixes. Run before every `gh pr create` or on demand. Triggers on "pr self review", "self review", "review my changes before PR", "pre-PR check", "ready to open a PR", "/pr-self-review".
 version: 1.0.0
+disable-model-invocation: true
 ---
 
 # PR Self Review (v1.0.0)
@@ -35,7 +36,7 @@ Prints JSON: `files`, `tasks` (one per skill, chunked), `excluded`, `deleted`, `
 Launch one **read-only subagent per entry in `tasks`**, all in a single message (`general-purpose`). Prompt template:
 
 > You are reviewing a subset of a local diff against ONE skill. Do not edit, write or create any file, and do not run anything that changes the repo.
-> 1. Read `.claude/skills/{skill}/SKILL.md` and the reference files it points to that are relevant to the files below (for `onion-architecture` also `references/review-checklist.md`; read the package's `AGENTS.md` for conventions).
+> 1. Read `.claude/skills/{skill}/SKILL.md` and the reference files it points to that are relevant to the files below (for `onion-architecture` and `react-frontend-structure` also `references/review-checklist.md`; read the package's `AGENTS.md` for conventions).
 > 2. For each file: `git diff {mergeBase} -- <file>` shows the change (untracked files: read the whole file, everything is new). Read enough surrounding code to judge it.
 > 3. Review ONLY these files: {files}. Apply ONLY that skill's rules. Ignore anything the skill does not cover.
 > 4. Levels: use the skill's own severity tag if it has one, else follow `.claude/skills/pr-self-review/references/severity.md`. Mark a finding CRITICAL only if it passes the CRITICAL gate in that file (introduced by this diff, concrete evidence, real consequence). Flag violations that already existed and were not introduced by the diff as `preExisting: true`, max HIGH.

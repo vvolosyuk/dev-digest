@@ -34,6 +34,12 @@
       "contentPattern": "['\"]use (client|server)['\"]"
     },
     {
+      "skill": "react-frontend-structure",
+      "group": "ui",
+      "include": ["client/src/app/**/*.{ts,tsx}", "client/src/components/**/*.{ts,tsx}", "client/src/lib/**/*.{ts,tsx}"],
+      "exclude": ["**/*.test.{ts,tsx}"]
+    },
+    {
       "skill": "react-testing-library",
       "group": "ui",
       "include": ["client/**/*.test.{ts,tsx}", "client/src/test/**"]
