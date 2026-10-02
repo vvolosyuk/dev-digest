@@ -13,6 +13,8 @@ vi.mock("./hooks", () => ({
 }));
 
 vi.mock("@devdigest/ui", () => ({
+  NAV: [],
+  SHORTCUTS: [],
   AppFrame: ({ children, ctx }: { children: React.ReactNode; ctx: { onOpenCommandPalette: () => void } }) => (
     <div>
       <button onClick={ctx.onOpenCommandPalette}>open-palette-trigger</button>

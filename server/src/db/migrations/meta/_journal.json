@@ -78,6 +78,13 @@
       "when": 1789938123740,
       "tag": "0010_milky_raza",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1790900693731,
+      "tag": "0011_fuzzy_kingpin",
+      "breakpoints": true
     }
   ]
 }

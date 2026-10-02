@@ -20,7 +20,21 @@ const miniBtnStyle: React.CSSProperties = {
   cursor: "pointer",
 };
 
-export function PromptBlock({ label, text, color }: { label: string; text: string; color: string }) {
+export function PromptBlock({
+  label,
+  text,
+  color,
+  tokens,
+  additive,
+}: {
+  label: string;
+  text: string;
+  color: string;
+  /** Token count for this slot (`assembly.tokens[slot]`); hidden when absent. */
+  tokens?: number | null;
+  /** Render as an addition to the base prompt (`+N tokens`), e.g. skills. */
+  additive?: boolean;
+}) {
   const t = useTranslations("runs");
   const [open, setOpen] = React.useState(false);
   const [full, setFull] = React.useState(false);
@@ -35,6 +49,11 @@ export function PromptBlock({ label, text, color }: { label: string; text: strin
       <div onClick={() => setOpen((o) => !o)} style={s.promptHead}>
         <span style={s.promptDot(color)} />
         <span style={s.promptLabel}>{label}</span>
+        {tokens != null && (
+          <span className="tnum" style={{ fontSize: 12, color: "var(--text-muted)" }}>
+            {t(additive ? "trace.prompt.tokensAdded" : "trace.prompt.tokens", { count: tokens })}
+          </span>
+        )}
         <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8 }}>
           <button
             type="button"

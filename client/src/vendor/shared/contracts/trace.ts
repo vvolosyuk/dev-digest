@@ -48,6 +48,9 @@ export const PromptAssembly = z.object({
   /** PR author's description/body (truncated); null when absent. */
   pr_description: z.string().nullish(),
   user: z.string(),
+  /** Token count per non-empty slot (system, skills, memory, repo_map, callers,
+      pr_description, user). Absent on traces recorded before L02. */
+  tokens: z.record(z.string(), z.number().int()).nullish(),
 });
 export type PromptAssembly = z.infer<typeof PromptAssembly>;
 

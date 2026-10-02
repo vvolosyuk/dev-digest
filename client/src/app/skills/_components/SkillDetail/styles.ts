@@ -1,0 +1,50 @@
+import type { CSSProperties } from "react";
+
+/** Co-located styles for SkillDetail (mirrors AgentEditorShell's editor column). */
+export const s = {
+  col: { flex: 1, display: "flex", flexDirection: "column", minWidth: 0, minHeight: 0 } satisfies CSSProperties,
+  header: {
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    padding: "16px 28px 0",
+    flexShrink: 0,
+  } satisfies CSSProperties,
+  iconBox: (color: string, bg: string): CSSProperties => ({
+    width: 30,
+    height: 30,
+    borderRadius: 8,
+    background: bg,
+    color,
+    display: "grid",
+    placeItems: "center",
+    flexShrink: 0,
+  }),
+  title: { fontSize: 18, fontWeight: 700, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" } satisfies CSSProperties,
+  actions: { marginLeft: "auto", display: "flex", gap: 8 } satisfies CSSProperties,
+  tabs: {
+    display: "flex",
+    gap: 2,
+    padding: "0 24px",
+    marginTop: 14,
+    borderBottom: "1px solid var(--border)",
+    flexShrink: 0,
+  } satisfies CSSProperties,
+  tab: (on: boolean, stub: boolean): CSSProperties => ({
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    padding: "12px 16px",
+    border: "none",
+    background: "transparent",
+    borderBottom: "2px solid " + (on ? "var(--accent)" : "transparent"),
+    marginBottom: -1,
+    cursor: "pointer",
+    fontSize: 14,
+    fontWeight: on ? 600 : 500,
+    color: on ? "var(--text-primary)" : "var(--text-secondary)",
+    opacity: stub ? 0.5 : 1,
+  }),
+  lesson: { fontSize: 10.5, fontWeight: 700, color: "var(--text-muted)" } satisfies CSSProperties,
+  body: { flex: 1, overflow: "auto", padding: 28 } satisfies CSSProperties,
+} as const;

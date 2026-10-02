@@ -9,6 +9,14 @@ in the DB). The canonical, reviewable copies live next to this file:
 - [`general-reviewer.md`](./general-reviewer.md)
 - [`security-reviewer.md`](./security-reviewer.md)
 - [`performance-reviewer.md`](./performance-reviewer.md)
+- [`test-quality-reviewer.md`](./test-quality-reviewer.md)
+- [`api-contract-reviewer.md`](./api-contract-reviewer.md)
+
+The Test Quality and API Contract prompts are intentionally **basic**: they state
+the role, severity and verdict rules but carry no detailed checklists. The
+checklists live in skills linked to the agent (sample texts in
+[`../skills-samples/`](../skills-samples/README.md)), which the engine injects as the
+`## Skills / rules` block of the user message.
 
 > The DB is the source of truth at run time. These files are the human-readable
 > originals — when you change a prompt, edit the file here **and** push it to the

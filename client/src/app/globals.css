@@ -22,3 +22,17 @@
     transform: translateY(0);
   }
 }
+
+/* Native form controls (e.g. the open <select> option list) are painted by the
+   browser, which doesn't know about data-theme — without this the dark theme's
+   white option text lands on the OS-default white popup. */
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+[data-theme="light"] {
+  color-scheme: light;
+}
+select option {
+  background-color: var(--bg-elevated);
+  color: var(--text-primary);
+}

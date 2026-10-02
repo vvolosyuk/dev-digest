@@ -24,19 +24,20 @@ const VersionParams = z.object({
  *   PUT    /agents/:id              → update / toggle enabled (versions config)
  *   GET    /agents/:id/versions     → config history (newest first)
  *   GET    /agents/:id/versions/:version → one config snapshot
- *   GET    /agents/:id/skills       → linked skills (ordered)
- *   POST   /agents/:id/skills       → set/reorder linked skills OR link one
+ *   GET    /agents/:id/skills       → linked skills (ordered, with per-link enabled)
+ *   PUT    /agents/:id/skills       → replace the full ordered set `{ links: [{skill_id, enabled}] }`
+ *   POST   /agents/:id/skills       → legacy: set/reorder (`skill_ids`, all enabled) OR link one
  *   GET    /agents/:id/models       → dynamic model list for the agent's provider
  *   GET    /providers/:id/models    → dynamic model list for a provider (editor)
  */
 
 // Derived from the shared `Agent` entity contract (omit the server-assigned
-// `id`/`version`) rather than hand-duplicated, so a field added to `Agent`
-// flows through automatically. The `.extend()` re-tightens the fields this
+// `id`/`version` and the read-only list-only `skill_count`) rather than
+// hand-duplicated, so a field added to `Agent` flows through automatically. The `.extend()` re-tightens the fields this
 // request body validates more strictly than the entity does (required +
 // non-empty `name`/`model`/`system_prompt`) and keeps the rest optional for
 // create.
-const CreateAgentBody = Agent.omit({ id: true, version: true }).extend({
+const CreateAgentBody = Agent.omit({ id: true, version: true, skill_count: true }).extend({
   name: z.string().min(1),
   model: z.string().min(1),
   system_prompt: z.string().min(1),
@@ -59,7 +60,22 @@ const SetSkillsBody = z
   })
   .refine((b) => b.skill_ids !== undefined || b.skill_id !== undefined, {
     message: 'Provide skill_ids (set/reorder) or skill_id (link one)',
+  })
+  .refine((b) => b.skill_ids === undefined || new Set(b.skill_ids).size === b.skill_ids.length, {
+    message: 'Duplicate skill_id in skill_ids',
   });
+
+/**
+ * Full ordered skill set for an agent (order = index). A skill may appear at
+ * most once; an empty array unlinks everything.
+ */
+const PutSkillsBody = z.object({
+  links: z
+    .array(z.object({ skill_id: z.string().uuid(), enabled: z.boolean() }))
+    .refine((links) => new Set(links.map((l) => l.skill_id)).size === links.length, {
+      message: 'Duplicate skill_id in links',
+    }),
+});
 
 export default async function agentsRoutes(appBase: FastifyInstance) {
   const app = appBase.withTypeProvider<ZodTypeProvider>();
@@ -142,6 +158,17 @@ export default async function agentsRoutes(appBase: FastifyInstance) {
     if (!agent) throw new NotFoundError('Agent not found');
     return service.skillLinks(req.params.id);
   });
+
+  app.put(
+    '/agents/:id/skills',
+    { schema: { params: IdParams, body: PutSkillsBody } },
+    async (req) => {
+      const { workspaceId } = await getContext(app.container, req);
+      const links = await service.setSkillLinks(workspaceId, req.params.id, req.body.links);
+      if (!links) throw new NotFoundError('Agent not found');
+      return links;
+    },
+  );
 
   app.post(
     '/agents/:id/skills',
