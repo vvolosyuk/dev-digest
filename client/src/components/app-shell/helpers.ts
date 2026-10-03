@@ -2,7 +2,13 @@
 
 import type { NavGroup, RepoSummary, ShortcutDef } from "@devdigest/ui";
 import type { Repo } from "../../lib/types";
-import { SKILLS_LAB_SECTION, SKILLS_NAV_ITEM, SKILLS_SHORTCUT } from "./constants";
+import {
+  CONVENTIONS_NAV_ITEM,
+  CONVENTIONS_SHORTCUT,
+  SKILLS_LAB_SECTION,
+  SKILLS_NAV_ITEM,
+  SKILLS_SHORTCUT,
+} from "./constants";
 
 /** Map a lib `Repo` to the `RepoSummary` shape the AppFrame shell context expects. */
 export function toShellRepo(r: Repo): RepoSummary {
@@ -41,16 +47,20 @@ export function activeKeyFor(pathname: string): string {
 }
 
 /**
- * Nav groups with a "SKILLS LAB" section (Skills + Agents, Agents moved out of
- * its original group). Idempotent: an already-overridden nav comes back unchanged (as a copy).
+ * Nav groups with a "SKILLS LAB" section (Skills + Agents + Conventions, Agents
+ * moved out of its original group). Idempotent: an already-overridden nav comes back unchanged (as a copy).
  */
 export function withSkillsLab(nav: readonly NavGroup[]): NavGroup[] {
   if (nav.some((g) => g.section === SKILLS_LAB_SECTION)) return [...nav];
   const agents = nav.flatMap((g) => g.items).find((it) => it.key === "agents");
+  const lab = new Set(["agents", SKILLS_NAV_ITEM.key, CONVENTIONS_NAV_ITEM.key]);
   const rest = nav
-    .map((g) => ({ ...g, items: g.items.filter((it) => it.key !== "agents" && it.key !== SKILLS_NAV_ITEM.key) }))
+    .map((g) => ({ ...g, items: g.items.filter((it) => !lab.has(it.key)) }))
     .filter((g) => g.items.length > 0);
-  return [...rest, { section: SKILLS_LAB_SECTION, items: agents ? [SKILLS_NAV_ITEM, agents] : [SKILLS_NAV_ITEM] }];
+  const items = agents
+    ? [SKILLS_NAV_ITEM, agents, CONVENTIONS_NAV_ITEM]
+    : [SKILLS_NAV_ITEM, CONVENTIONS_NAV_ITEM];
+  return [...rest, { section: SKILLS_LAB_SECTION, items }];
 }
 
 /**
@@ -62,8 +72,13 @@ export function withSkillsLab(nav: readonly NavGroup[]): NavGroup[] {
 export function applyNavOverride(nav: NavGroup[], shortcuts: ShortcutDef[]): void {
   const next = withSkillsLab(nav);
   nav.splice(0, nav.length, ...next);
-  if (!shortcuts.some((s) => s.keys === SKILLS_SHORTCUT.keys)) {
-    const at = shortcuts.findIndex((s) => s.keys === "g a");
-    shortcuts.splice(at >= 0 ? at + 1 : shortcuts.length, 0, SKILLS_SHORTCUT);
-  }
+  insertShortcutAfter(shortcuts, "g a", SKILLS_SHORTCUT);
+  insertShortcutAfter(shortcuts, SKILLS_SHORTCUT.keys, CONVENTIONS_SHORTCUT);
+}
+
+/** Insert `def` right after the `after` row (or at the end), once. */
+function insertShortcutAfter(shortcuts: ShortcutDef[], after: string, def: ShortcutDef): void {
+  if (shortcuts.some((s) => s.keys === def.keys)) return;
+  const at = shortcuts.findIndex((s) => s.keys === after);
+  shortcuts.splice(at >= 0 ? at + 1 : shortcuts.length, 0, def);
 }

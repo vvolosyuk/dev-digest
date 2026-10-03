@@ -19,25 +19,9 @@ import {
 } from './constants.js';
 
 export { formatSkillBlock, type SkillPromptFields } from '../_shared/skill-prompt.js';
+export { toSkillDto } from '../_shared/skill-dto.js';
 
 // ---- DTO mapping ----
-
-/** Map a persisted skill row to the public `Skill` DTO. */
-export function toSkillDto(row: SkillRow, agentCount?: number): Skill {
-  return {
-    id: row.id,
-    name: row.name,
-    description: row.description,
-    type: row.type,
-    source: row.source as SkillSource,
-    body: row.body,
-    enabled: row.enabled,
-    version: row.version,
-    evidence_files: row.evidenceFiles ?? null,
-    ...(agentCount !== undefined ? { agent_count: agentCount } : {}),
-    updated_at: row.updatedAt.toISOString(),
-  };
-}
 
 /**
  * Map a `skill_versions` row to the public `SkillVersion` DTO. Pre-L02 rows only

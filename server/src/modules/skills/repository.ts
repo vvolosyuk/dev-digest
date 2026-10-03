@@ -15,6 +15,8 @@ export interface InsertSkill {
   source: SkillSource;
   body: string;
   enabled?: boolean;
+  /** Repo files backing an `extracted` skill (conventions extractor). */
+  evidenceFiles?: string[];
 }
 
 export interface UpdateSkill {
@@ -23,6 +25,8 @@ export interface UpdateSkill {
   type?: SkillType;
   body?: string;
   enabled?: boolean;
+  /** Repo files backing an `extracted` skill (conventions extractor). */
+  evidenceFiles?: string[];
 }
 
 /** A skill row plus the number of agents linking it. */
@@ -88,6 +92,15 @@ export class SkillsRepository {
     return row ? { skill: row.skill, agentCount: Number(row.agentCount) } : undefined;
   }
 
+  /** A workspace skill by its (unique) name. */
+  async getByName(workspaceId: string, name: string): Promise<SkillWithAgentCount | undefined> {
+    const [row] = await this.db
+      .select({ skill: t.skills, agentCount: agentCountSql })
+      .from(t.skills)
+      .where(and(eq(t.skills.workspaceId, workspaceId), eq(t.skills.name, name)));
+    return row ? { skill: row.skill, agentCount: Number(row.agentCount) } : undefined;
+  }
+
   async existsByName(workspaceId: string, name: string): Promise<boolean> {
     const [row] = await this.db
       .select({ id: t.skills.id })
@@ -110,6 +123,7 @@ export class SkillsRepository {
           body: values.body,
           enabled: values.enabled ?? true,
           version: INITIAL_SKILL_VERSION,
+          evidenceFiles: values.evidenceFiles ?? null,
         })
         .returning();
       await tx.insert(t.skillVersions).values(snapshotOf(row!, null));
@@ -137,6 +151,7 @@ export class SkillsRepository {
           ...(patch.type !== undefined ? { type: patch.type } : {}),
           ...(patch.body !== undefined ? { body: patch.body } : {}),
           ...(patch.enabled !== undefined ? { enabled: patch.enabled } : {}),
+          ...(patch.evidenceFiles !== undefined ? { evidenceFiles: patch.evidenceFiles } : {}),
           ...(opts.bumpVersion ? { version: sql`${t.skills.version} + 1` } : {}),
           updatedAt: new Date(),
         })

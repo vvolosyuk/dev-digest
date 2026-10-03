@@ -19,3 +19,19 @@ export const SKILLS_NAV_ITEM: NavItemDef = {
 
 /** Shortcut-help row for `g s`. */
 export const SKILLS_SHORTCUT: ShortcutDef = { keys: "g s", label: "Go to Skills", group: "Navigation" };
+
+/** Nav entry for the repo-scoped Conventions extractor (L02). */
+export const CONVENTIONS_NAV_ITEM: NavItemDef = {
+  key: "conventions",
+  label: "Conventions",
+  icon: "ListChecks",
+  href: "/repos/:repoId/conventions",
+  gKey: "c",
+};
+
+/** Shortcut-help row for `g c`. */
+export const CONVENTIONS_SHORTCUT: ShortcutDef = {
+  keys: "g c",
+  label: "Go to Conventions",
+  group: "Navigation",
+};

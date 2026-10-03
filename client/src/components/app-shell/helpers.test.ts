@@ -13,13 +13,14 @@ const BASE: NavGroup[] = [
 ];
 
 describe("withSkillsLab", () => {
-  it("moves Agents into a SKILLS LAB group led by Skills", () => {
+  it("moves Agents into a SKILLS LAB group led by Skills, ending with Conventions", () => {
     const nav = withSkillsLab(BASE);
     expect(nav.map((g) => g.section)).toEqual(["WORKSPACE", "SKILLS LAB"]);
     expect(nav[0]!.items.map((i) => i.key)).toEqual(["pulls"]);
     expect(nav[1]!.items.map((i) => [i.key, i.href, i.icon, i.gKey])).toEqual([
       ["skills", "/skills", "Sparkles", "s"],
       ["agents", "/agents", "Cpu", "a"],
+      ["conventions", "/repos/:repoId/conventions", "ListChecks", "c"],
     ]);
   });
 
@@ -40,7 +41,7 @@ describe("applyNavOverride", () => {
     applyNavOverride(nav, shortcuts);
     applyNavOverride(nav, shortcuts);
     expect(nav.map((g) => g.section)).toEqual(["WORKSPACE", "SKILLS LAB"]);
-    expect(shortcuts.map((s) => s.keys)).toEqual(["g p", "g a", "g s", "j / k"]);
+    expect(shortcuts.map((s) => s.keys)).toEqual(["g p", "g a", "g s", "g c", "j / k"]);
   });
 });
 
@@ -49,5 +50,6 @@ describe("activeKeyFor", () => {
     expect(activeKeyFor("/skills")).toBe("skills");
     expect(activeKeyFor("/skills/abc")).toBe("skills");
     expect(activeKeyFor("/agents/x")).toBe("agents");
+    expect(activeKeyFor("/repos/r1/conventions")).toBe("conventions");
   });
 });

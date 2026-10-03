@@ -5,6 +5,8 @@
     "headingPrefix": "Conventions in ",
     "repoFallback": "repo",
     "subtitle": "Scan the cloned repo to surface house-rules — each backed by evidence you can turn into a Skill.",
+    "lastScan": "Last scan {when}",
+    "neverScanned": "Not scanned yet",
     "scanning": "Scanning…",
     "rescan": "Re-scan",
     "runExtraction": "Run extraction",
@@ -15,12 +17,51 @@
       "body": "Scan the repo to surface house-rules — naming, error handling, structure — each backed by evidence you can turn into a Skill.",
       "cta": "Run extraction"
     },
-    "candidateCount": "{count, plural, one {# candidate} other {# candidates}} · grounded against sampled files"
+    "candidateCount": "{count, plural, one {# candidate} other {# candidates}} · grounded against sampled files",
+    "scanResult": "Scanned {files} files with {model}: {kept, plural, one {# new candidate} other {# new candidates}}, {discarded} discarded (no verifiable evidence), {duplicates} already decided.",
+    "acceptAll": "Accept all",
+    "deselectAll": "Deselect all",
+    "acceptedCount": "{accepted} of {total} accepted",
+    "createSkill": "Create skill",
+    "createSkillHint": "Accept at least one convention to create a skill."
   },
   "card": {
     "confidence": "Confidence",
     "accepted": "Accepted",
+    "accept": "Accept",
     "accepting": "Accepting…",
-    "acceptAsSkill": "Accept as Skill"
+    "acceptAsSkill": "Accept as Skill",
+    "reject": "Reject",
+    "rejected": "Rejected",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "ruleLabel": "Rule",
+    "categoryLabel": "Category",
+    "copy": "Copy snippet",
+    "copied": "Snippet copied",
+    "ruleTooShort": "Rule must be at least 3 characters."
+  },
+  "modal": {
+    "title": "Create skill from conventions",
+    "banner": "Merged from {count, plural, one {# accepted convention} other {# accepted conventions}} in {repo}. Everything below is editable before you save.",
+    "drafting": "Drafting the skill description and body…",
+    "draftedWith": "Drafted with {model} — review before saving.",
+    "templateFallback": "The model could not draft this skill, so a template was used ({reason}). Edit the description so an agent can tell when to apply it.",
+    "regenerate": "Regenerate draft",
+    "regenerateConfirm": "Replace your edits to the description and body with a new draft?",
+    "draftFailed": "Could not draft the skill: {reason}",
+    "enabledHint": "Whether this block is added to agents' prompts.",
+    "footerNote": "Saved as v1 · added to Skills Lab · link it to agents from the agent editor",
+    "create": "Create skill",
+    "creating": "Creating…",
+    "cancel": "Cancel",
+    "createdToast": "Created skill \"{name}\" from conventions",
+    "conflictTitle": "A skill named \"{name}\" already exists (v{version}).",
+    "conflictBody": "Save this draft as version v{next} of it? Agents linked to that skill will use the new version. Choose Discard to close without saving.",
+    "saveAsVersion": "Save as v{next}",
+    "savingVersion": "Saving…",
+    "discard": "Discard",
+    "versionToast": "Saved \"{name}\" as v{version}"
   }
 }
