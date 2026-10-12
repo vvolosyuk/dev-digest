@@ -1,5 +1,6 @@
 import { describe, it, expect, afterEach, vi } from "vitest";
 import { render, screen, fireEvent, cleanup, act } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { NextIntlClientProvider } from "next-intl";
 import type { FindingRecord } from "@devdigest/shared";
 import messages from "../../../messages/en/prReview.json";
@@ -76,28 +77,34 @@ describe("truncateRationale", () => {
 });
 
 describe("FindingsHoverPopover", () => {
-  it("opens on hover and lists findings sorted by priority", () => {
+  it("opens on hover and lists findings sorted by priority", async () => {
+    const user = userEvent.setup();
     renderWithIntl(
       <FindingsHoverPopover findings={FINDINGS}>
         <span>trigger</span>
       </FindingsHoverPopover>,
     );
-    fireEvent.mouseEnter(screen.getByText("trigger").parentElement!);
+    await user.hover(screen.getByText("trigger"));
     expect(screen.getByText("Hardcoded secret")).toBeInTheDocument();
     expect(screen.getByText("N+1 query")).toBeInTheDocument();
   });
 
-  it("never opens while disabled", () => {
+  it("never opens while disabled", async () => {
+    const user = userEvent.setup();
     renderWithIntl(
       <FindingsHoverPopover findings={FINDINGS} disabled>
         <span>trigger</span>
       </FindingsHoverPopover>,
     );
-    fireEvent.mouseEnter(screen.getByText("trigger").parentElement!);
+    await user.hover(screen.getByText("trigger"));
     expect(screen.queryByText("Hardcoded secret")).not.toBeInTheDocument();
   });
 
   it("closes after the mouse-leave delay", () => {
+    // Kept on fireEvent (not userEvent): userEvent's internal async dispatch
+    // loop doesn't resolve reliably under vi.useFakeTimers() in this setup,
+    // and this test is specifically exercising the setTimeout-driven close
+    // delay, not a realistic user gesture.
     vi.useFakeTimers();
     renderWithIntl(
       <FindingsHoverPopover findings={FINDINGS}>

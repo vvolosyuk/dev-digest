@@ -1,0 +1,9 @@
+{
+  "name": "api-contract",
+  "version": "0.1.0",
+  "description": "API contract review skills: breaking changes, response schema, semver discipline, deprecation policy.",
+  "author": {
+    "name": "Volodymyr"
+  },
+  "keywords": ["api", "contract", "breaking-change", "semver", "deprecation", "review"]
+}

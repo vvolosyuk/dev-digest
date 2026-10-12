@@ -18,6 +18,9 @@ import { Row, Stat } from "../atoms";
 export function TraceBody({ trace, findings }: { trace: RunTrace; findings: FindingRecord[] }) {
   const t = useTranslations("runs");
   const stats = trace.stats;
+  const assembly = trace.prompt_assembly;
+  // Per-slot token counts (L02); older traces have none → no counts shown.
+  const tokens = assembly.tokens ?? {};
   return (
     <>
       <TraceSection icon="Settings" title={t("trace.configuration")}>
@@ -71,23 +74,23 @@ export function TraceBody({ trace, findings }: { trace: RunTrace; findings: Find
       <FindingsSection findings={findings} />
 
       <TraceSection icon="FileText" title={t("trace.promptAssembly")} defaultOpen={false}>
-        <PromptBlock label={t("trace.prompt.system")} text={trace.prompt_assembly.system} color={PROMPT_COLORS.system} />
-        {trace.prompt_assembly.skills != null && (
-          <PromptBlock label={t("trace.prompt.skills")} text={trace.prompt_assembly.skills} color={PROMPT_COLORS.skills} />
+        <PromptBlock label={t("trace.prompt.system")} text={assembly.system} color={PROMPT_COLORS.system} tokens={tokens.system} />
+        {assembly.skills != null && (
+          <PromptBlock label={t("trace.prompt.skills")} text={assembly.skills} color={PROMPT_COLORS.skills} tokens={tokens.skills} additive />
         )}
-        {trace.prompt_assembly.memory != null && (
-          <PromptBlock label={t("trace.prompt.memory")} text={trace.prompt_assembly.memory} color={PROMPT_COLORS.memory} />
+        {assembly.memory != null && (
+          <PromptBlock label={t("trace.prompt.memory")} text={assembly.memory} color={PROMPT_COLORS.memory} tokens={tokens.memory} />
         )}
-        {trace.prompt_assembly.repo_map != null && (
-          <PromptBlock label={t("trace.prompt.repoMap")} text={trace.prompt_assembly.repo_map} color={PROMPT_COLORS.repoMap} />
+        {assembly.repo_map != null && (
+          <PromptBlock label={t("trace.prompt.repoMap")} text={assembly.repo_map} color={PROMPT_COLORS.repoMap} tokens={tokens.repo_map} />
         )}
-        {trace.prompt_assembly.specs != null && (
-          <PromptBlock label={t("trace.prompt.specs")} text={trace.prompt_assembly.specs} color={PROMPT_COLORS.specs} />
+        {assembly.specs != null && (
+          <PromptBlock label={t("trace.prompt.specs")} text={assembly.specs} color={PROMPT_COLORS.specs} tokens={tokens.specs} />
         )}
-        {trace.prompt_assembly.callers != null && (
-          <PromptBlock label={t("trace.prompt.callers")} text={trace.prompt_assembly.callers} color={PROMPT_COLORS.callers} />
+        {assembly.callers != null && (
+          <PromptBlock label={t("trace.prompt.callers")} text={assembly.callers} color={PROMPT_COLORS.callers} tokens={tokens.callers} />
         )}
-        <PromptBlock label={t("trace.prompt.user")} text={trace.prompt_assembly.user} color={PROMPT_COLORS.user} />
+        <PromptBlock label={t("trace.prompt.user")} text={assembly.user} color={PROMPT_COLORS.user} tokens={tokens.user} />
       </TraceSection>
 
       <TraceSection

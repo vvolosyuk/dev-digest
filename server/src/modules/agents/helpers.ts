@@ -8,8 +8,12 @@ import type { AgentRow, AgentVersionRow } from './repository.js';
  * implementations.
  */
 
-/** Map a persisted agent row to the public `Agent` DTO. */
-export function toAgentDto(row: AgentRow): Agent {
+/**
+ * Map a persisted agent row to the public `Agent` DTO. `skillCount` (active
+ * skills reaching the prompt) is only known on the list endpoint; omitted
+ * elsewhere.
+ */
+export function toAgentDto(row: AgentRow, skillCount?: number): Agent {
   return {
     id: row.id,
     name: row.name,
@@ -23,7 +27,13 @@ export function toAgentDto(row: AgentRow): Agent {
     strategy: row.strategy as ReviewStrategy,
     ci_fail_on: row.ciFailOn as CiFailOn,
     repo_intel: row.repoIntel,
+    ...(skillCount !== undefined ? { skill_count: skillCount } : {}),
   };
+}
+
+/** True when two ordered id lists are identical (same ids, same order). */
+export function sameIds(a: readonly string[], b: readonly string[]): boolean {
+  return a.length === b.length && a.every((id, i) => id === b[i]);
 }
 
 /**

@@ -28,13 +28,13 @@ check.
   in order," which agent-browser + a thin runner already accomplishes.
 - **Write flows as TypeScript functions calling agent-browser directly** —
   rejected: JSON keeps flows declarative and easy to scan/diff, and keeps the
-  "spec IS the flow definition" property called out in `e2e/CLAUDE.md` (no
+  "spec IS the flow definition" property called out in `e2e/AGENTS.md` (no
   separate planning doc, no test-framework boilerplate per flow).
 
 ## Consequences
 
 - Adding a flow means adding one JSON file with a zero-padded, never-reused
-  numeric prefix (`e2e/CLAUDE.md` naming convention) — no test-framework
+  numeric prefix (`e2e/AGENTS.md` naming convention) — no test-framework
   ceremony.
 - No access to a mature test framework's reporting/parallelism/retry
   features; `run.ts` owns all of that, so any gap there is the team's own

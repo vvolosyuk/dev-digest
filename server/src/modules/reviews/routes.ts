@@ -23,13 +23,22 @@ export default async function reviewsRoutes(appBase: FastifyInstance) {
 
   // ---- Run a review (manual trigger) -------------------------------
   // Tight per-route limit: each call can fan out to expensive LLM runs.
-  // Body stays a tolerant manual parse (both fields optional; empty body is OK).
+  // `body` is `RunRequest.nullish()` (not just `RunRequest`) because both of
+  // RunRequest's own fields are already optional — a request sent with no
+  // body at all must still validate the same as an explicit `{}`. Fastify's
+  // body parser reports a fully absent body as `null`, not `undefined`, so
+  // `.optional()` alone isn't enough — `.nullish()` covers both. A malformed
+  // body (wrong field types) 422s via Fastify's route-schema validation
+  // before the handler runs.
   app.post(
     '/pulls/:id/review',
-    { schema: { params: IdParams }, config: { rateLimit: { max: 10, timeWindow: '1 minute' } } },
+    {
+      schema: { params: IdParams, body: RunRequest.nullish() },
+      config: { rateLimit: { max: 10, timeWindow: '1 minute' } },
+    },
     async (req) => {
     const { workspaceId } = await getContext(container, req);
-    const body = RunRequest.parse(req.body ?? {});
+    const body = req.body ?? {};
     const targets = await service.resolveTargets(workspaceId, {
       ...(body.agentId !== undefined ? { agentId: body.agentId } : {}),
       ...(body.all !== undefined ? { all: body.all } : {}),

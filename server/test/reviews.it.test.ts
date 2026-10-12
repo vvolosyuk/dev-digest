@@ -215,6 +215,28 @@ d('A2 reviews + agents (Testcontainers pg)', () => {
     await app.close();
   });
 
+  it('POST /pulls/:id/review: malformed body 422s with a structured error (characterization)', async () => {
+    // Locks down current behavior before switching `RunRequest.parse(req.body)`
+    // (reviews/routes.ts) to Fastify route-schema validation — see the
+    // improvement plan, Tier 0 / item 4. Whichever validation path produces
+    // this response, a malformed body must keep 422ing with an `error.code`
+    // field, not crash into a 500.
+    const app = await appWith(REVIEW_FIXTURE);
+    const { pr } = await setupRepoAndPr(pg.handle.db, workspaceId);
+
+    // `all` must be boolean per RunRequest — a string trips validation.
+    const res = await app.inject({
+      method: 'POST',
+      url: `/pulls/${pr.id}/review`,
+      payload: { all: 'yes' },
+    });
+    expect(res.statusCode).toBe(422);
+    const body = res.json();
+    expect(body.error?.code).toBeDefined();
+
+    await app.close();
+  });
+
   it('run cost: persists per-run cost and sums across multiple agents on the same PR', async () => {
     const app = await appWith(REVIEW_FIXTURE);
     const { pr } = await setupRepoAndPr(pg.handle.db, workspaceId);

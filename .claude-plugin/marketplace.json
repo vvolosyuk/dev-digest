@@ -1,0 +1,20 @@
+{
+  "name": "devdigest",
+  "owner": {
+    "name": "Volodymyr"
+  },
+  "metadata": {
+    "description": "DevDigest review skills, packaged as Claude Code plugins and importable into DevDigest agents.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "api-contract",
+      "source": "./plugins/api-contract",
+      "description": "API contract review skills: breaking changes, response schema, semver discipline, deprecation policy.",
+      "version": "0.1.0",
+      "category": "code-review",
+      "keywords": ["api", "contract", "breaking-change", "semver", "deprecation", "review"]
+    }
+  ]
+}

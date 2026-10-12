@@ -1,6 +1,6 @@
 # server docs
 
-Design notes and ADRs for `@devdigest/api`. Read from `server/CLAUDE.md` when relevant.
+Design notes and ADRs for `@devdigest/api`. Read from `server/AGENTS.md` when relevant.
 
 ## ADRs
 

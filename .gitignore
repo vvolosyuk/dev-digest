@@ -23,3 +23,6 @@ test-results/
 
 # emdash worktree config (local)
 .emdash.json
+
+# pr-self-review local result (read by the PreToolUse guard)
+.claude/pr-self-review/

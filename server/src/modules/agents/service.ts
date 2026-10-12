@@ -8,6 +8,7 @@ import type {
   Provider,
   ReviewStrategy,
 } from '@devdigest/shared';
+import { NotFoundError } from '../../platform/errors.js';
 import { AgentsRepository } from './repository.js';
 import { toAgentDto, toAgentVersionDto } from './helpers.js';
 
@@ -55,9 +56,14 @@ export class AgentsService {
     this.repo = new AgentsRepository(container.db);
   }
 
+  /** All agents of the workspace, each with `skill_count` = skills that reach
+   *  its prompt (link enabled AND skill globally enabled). */
   async list(workspaceId: string): Promise<Agent[]> {
-    const rows = await this.repo.list(workspaceId);
-    return rows.map(toAgentDto);
+    const [rows, counts] = await Promise.all([
+      this.repo.list(workspaceId),
+      this.repo.activeSkillCounts(workspaceId),
+    ]);
+    return rows.map((row) => toAgentDto(row, counts.get(row.id) ?? 0));
   }
 
   async get(workspaceId: string, id: string): Promise<Agent | undefined> {
@@ -135,40 +141,73 @@ export class AgentsService {
     return row ? toAgentVersionDto(row) : undefined;
   }
 
-  /** Linked skills for an agent as AgentSkillLink[] (ordered). */
+  /** Linked skills for an agent as AgentSkillLink[] (ordered, with `enabled`). */
   async skillLinks(agentId: string): Promise<AgentSkillLink[]> {
     const links = await this.repo.linkedSkills(agentId);
-    return links.map((l) => ({ agent_id: agentId, skill_id: l.skill.id, order: l.order }));
+    return links.map((l) => ({
+      agent_id: agentId,
+      skill_id: l.skill.id,
+      order: l.order,
+      enabled: l.enabled,
+    }));
   }
 
   /**
-   * Set / reorder the agent's linked skills. If `skillIds` is provided, replaces
-   * the whole set in that order. Returns the resulting ordered links.
+   * Replace the agent's full ordered skill set (order = index, per-link
+   * `enabled`). Every skill must belong to the workspace (else NotFoundError →
+   * 404). Changing the effective (enabled, ordered) set bumps the agent version
+   * + snapshots it; a no-op leaves the version alone. Returns undefined when the
+   * agent isn't in the workspace.
    */
+  async setSkillLinks(
+    workspaceId: string,
+    agentId: string,
+    links: { skill_id: string; enabled: boolean }[],
+  ): Promise<AgentSkillLink[] | undefined> {
+    await this.assertSkillsInWorkspace(
+      workspaceId,
+      links.map((l) => l.skill_id),
+    );
+    const agent = await this.repo.replaceSkillLinks(
+      workspaceId,
+      agentId,
+      links.map((l) => ({ skillId: l.skill_id, enabled: l.enabled })),
+    );
+    if (!agent) return undefined;
+    return this.skillLinks(agentId);
+  }
+
+  /** Legacy `POST { skill_ids }`: replace the set, all links enabled. */
   async setSkills(
     workspaceId: string,
     agentId: string,
     skillIds: string[],
   ): Promise<AgentSkillLink[] | undefined> {
-    const agent = await this.repo.getById(workspaceId, agentId);
-    if (!agent) return undefined;
-    await this.repo.setSkills(agentId, skillIds);
-    return this.skillLinks(agentId);
+    return this.setSkillLinks(
+      workspaceId,
+      agentId,
+      skillIds.map((skill_id) => ({ skill_id, enabled: true })),
+    );
   }
 
-  /** Link a single skill (append or set order) — additive to existing links. */
+  /** Link a single skill (append or set order, enabled) — additive to existing links. */
   async linkSkill(
     workspaceId: string,
     agentId: string,
     skillId: string,
     order?: number,
   ): Promise<AgentSkillLink[] | undefined> {
-    const agent = await this.repo.getById(workspaceId, agentId);
+    await this.assertSkillsInWorkspace(workspaceId, [skillId]);
+    const agent = await this.repo.linkSkill(workspaceId, agentId, skillId, order);
     if (!agent) return undefined;
-    const existing = await this.repo.linkedSkills(agentId);
-    const resolvedOrder = order ?? existing.length;
-    await this.repo.linkSkill(agentId, skillId, resolvedOrder);
     return this.skillLinks(agentId);
+  }
+
+  /** Throws NotFoundError unless every id is a skill of this workspace. */
+  private async assertSkillsInWorkspace(workspaceId: string, skillIds: string[]): Promise<void> {
+    const found = await this.repo.existingSkillIds(workspaceId, skillIds);
+    const missing = [...new Set(skillIds)].filter((id) => !found.has(id));
+    if (missing.length > 0) throw new NotFoundError('Skill not found', { skill_ids: missing });
   }
 
   /**

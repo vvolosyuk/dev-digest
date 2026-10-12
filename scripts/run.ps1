@@ -1,9 +1,9 @@
 #
 # DevDigest quick run - assumes ./scripts/dev.sh (or --db-only) has been run at
-# least once so deps are installed and the DB is migrated/seeded. This script
-# just brings the stack up for a quick test pass:
+# least once so deps are installed and the DB is seeded. This script applies
+# any pending migrations and brings the stack up for a quick test pass:
 #
-#   Postgres (docker) -> API (:3001) -> web (:3000) -> open browser
+#   Postgres (docker) -> migrate -> API (:3001) -> web (:3000) -> open browser
 #
 # Server and client run in their own PowerShell windows so their logs stay
 # visible; close those windows (or Ctrl-C in them) to stop the dev servers.
@@ -51,6 +51,16 @@ for ($i = 0; $i -lt 60; $i++) {
 }
 if (-not $healthy) { Fail "Postgres did not become healthy in time" }
 Log "Postgres healthy"
+
+# --- migrate --------------------------------------------------------------------
+# The API doesn't migrate on boot, so apply pending migrations every run
+# (idempotent; a no-op when the schema is already current).
+Log "applying migrations"
+Push-Location "$Root\server"
+pnpm db:migrate
+$migrateExit = $LASTEXITCODE
+Pop-Location
+if ($migrateExit -ne 0) { Fail "migrations failed" }
 
 # --- dev servers ----------------------------------------------------------------
 Log "starting API on :3001 (server) in a new window"

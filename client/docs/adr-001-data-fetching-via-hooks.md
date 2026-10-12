@@ -37,4 +37,4 @@ awareness at all. All data comes from the Fastify API via these hooks.
 - Unit tests can mock at a single boundary (`fetch`) and exercise real hook
   logic.
 - New contributors must know to look in `src/lib/hooks/*` before reaching for
-  `fetch` — also documented in `client/CLAUDE.md` Gotchas.
+  `fetch` — also documented in `client/AGENTS.md` Gotchas.

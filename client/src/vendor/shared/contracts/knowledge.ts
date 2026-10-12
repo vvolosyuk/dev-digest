@@ -128,8 +128,37 @@ export const Skill = z.object({
   enabled: z.boolean(),
   version: z.number().int(),
   evidence_files: z.array(z.string()).nullish(),
+  /** Number of agents linking this skill (list endpoint only). */
+  agent_count: z.number().int().nullish(),
+  updated_at: z.string().nullish(),
 });
 export type Skill = z.infer<typeof Skill>;
+
+/** Immutable config snapshot of a skill at a given version. */
+export const SkillVersion = z.object({
+  skill_id: z.string(),
+  version: z.number().int(),
+  name: z.string(),
+  description: z.string(),
+  type: SkillType,
+  body: z.string(),
+  note: z.string().nullish(),
+  created_at: z.string(),
+});
+export type SkillVersion = z.infer<typeof SkillVersion>;
+
+/** Result of `POST /skills/import/preview` — nothing is persisted. */
+export const SkillImportPreview = z.object({
+  name: z.string(),
+  description: z.string(),
+  type: SkillType,
+  body: z.string(),
+  warnings: z.array(z.string()),
+  ignored_files: z.array(z.object({ path: z.string(), reason: z.string() })),
+  /** True when a skill with this name already exists in the workspace. */
+  conflict: z.boolean(),
+});
+export type SkillImportPreview = z.infer<typeof SkillImportPreview>;
 
 export const CommunitySkill = z.object({
   name: z.string(),
@@ -182,6 +211,8 @@ export const Agent = z.object({
   // Inject repo-intel context (repo skeleton + callers + rank note) into this
   // agent's review prompt. Default on; gated again by the global flag.
   repo_intel: z.boolean().default(true),
+  /** Active skill links (link enabled AND skill enabled) — list endpoint only. */
+  skill_count: z.number().int().nullish(),
 });
 export type Agent = z.infer<typeof Agent>;
 
@@ -189,5 +220,7 @@ export const AgentSkillLink = z.object({
   agent_id: z.string(),
   skill_id: z.string(),
   order: z.number().int(),
+  /** Per-agent toggle; a disabled link keeps its position but isn't injected. */
+  enabled: z.boolean().default(true),
 });
 export type AgentSkillLink = z.infer<typeof AgentSkillLink>;

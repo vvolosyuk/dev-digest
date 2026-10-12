@@ -7,18 +7,28 @@
     "searchPlaceholder": "Search skills…",
     "loadError": "Could not load skills.",
     "menu": {
-      "fromFile": "Import from file",
+      "fromFile": "Import from file…",
       "fromUrl": "Import from URL",
-      "community": "Search community skills…"
+      "community": "Search community skills…",
+      "create": "Create skill"
     },
     "empty": {
       "title": "No skills yet",
-      "body": "Import a skill from a file, a URL, or the community catalog.",
+      "body": "Create a skill or import one from a .md / .zip file. Skills are plain Markdown instructions — nothing is executed.",
       "cta": "Import from file"
     },
     "selectPrompt": {
       "title": "Select a skill",
       "body": "Pick a skill on the left to preview its body."
+    },
+    "newSkill": "New skill",
+    "runOnEvals": "Run on evals",
+    "runOnEvalsHint": "L06 — evals arrive in a later lesson",
+    "delete": "Delete skill",
+    "unsavedConfirm": "You have unsaved changes to this skill. Discard them?",
+    "noMatch": {
+      "title": "No matching skills",
+      "body": "Try a different search term."
     }
   },
   "detail": {
@@ -85,7 +95,10 @@
       "extracted": "Extracted",
       "community": "Community",
       "imported_url": "Imported"
-    }
+    },
+    "agentCount": "{count, plural, one {# agent} other {# agents}}",
+    "toggleLabel": "Enable skill {name}",
+    "disabledBadge": "disabled"
   },
   "preview": {
     "untrustedBadge": "untrusted source",
@@ -93,9 +106,137 @@
     "disabled": "Disabled",
     "save": "Save",
     "edit": "Edit",
-    "untrustedNotice": "This skill came from an untrusted source. Its body is stored as data (delimiter-wrapped) and must be vetted before it is enabled for an agent.",
+    "untrustedNotice": "Imported skills are someone else’s instructions that will run inside your agent’s prompt. Review before saving.",
     "bodyLabel": "Skill body (Markdown)",
     "bodyHint": "Saving a changed body creates a new immutable version.",
     "version": "v{version}"
+  },
+  "tabs": {
+    "config": "Config",
+    "preview": "Preview",
+    "versions": "Versions",
+    "context": "Context",
+    "evals": "Evals",
+    "stats": "Stats"
+  },
+  "stub": {
+    "title": "Coming in {lesson}",
+    "body": "This tab is part of a later lesson and is not available yet."
+  },
+  "config": {
+    "title": "Configuration",
+    "name": "Name",
+    "namePlaceholder": "untested-branches",
+    "nameHint": "Lowercase kebab-case (a–z, 0–9, -), 2–63 characters. Used as the skill identifier.",
+    "description": "Description",
+    "descriptionPlaceholder": "Flag new branches and error paths that have no test covering them.",
+    "descriptionHint": "Describe when the agent should apply this skill — write it as an instruction, e.g. \"Flag …\"",
+    "type": "Type",
+    "enabled": "Enabled",
+    "body": "Skill body",
+    "save": "Save",
+    "saving": "Saving…",
+    "create": "Create skill",
+    "creating": "Creating…",
+    "cancel": "Cancel",
+    "savedToast": "Saved \"{name}\" (v{version})",
+    "createdToast": "Created \"{name}\"",
+    "errors": {
+      "nameFormat": "Use lowercase letters, digits and dashes (2–63 chars, must start with a letter or digit).",
+      "nameTaken": "A skill with this name already exists.",
+      "descriptionLength": "Description must be 10–300 characters.",
+      "bodyRequired": "Skill body is required.",
+      "bodyTooLong": "Skill body must be at most 20,000 characters."
+    },
+    "typeOption": {
+      "rubric": "Rubric",
+      "convention": "Convention",
+      "security": "Security",
+      "custom": "Custom"
+    }
+  },
+  "editor": {
+    "untitled": "untitled",
+    "unsaved": "unsaved",
+    "tokens": "~{count} tokens",
+    "tokensHint": "Approximate (characters ÷ 4). The exact count is shown in the run trace.",
+    "bodyAria": "Skill body (Markdown)"
+  },
+  "previewTab": {
+    "title": "Preview",
+    "hint": "Rendered as the reviewing agent receives it."
+  },
+  "versions": {
+    "title": "Version history",
+    "count": "{count, plural, one {# version} other {# versions}}",
+    "hint": "Every save snapshots the body so eval runs stay reproducible against the exact text they scored.",
+    "current": "Current",
+    "noNote": "—",
+    "diff": "Diff",
+    "restore": "Restore",
+    "restoreConfirm": "Restore v{version}? This creates a new version with its content — history is kept.",
+    "restoredToast": "Restored v{from} as v{to}",
+    "empty": "No versions yet.",
+    "loadError": "Could not load versions."
+  },
+  "diff": {
+    "title": "v{from} → current (v{to})",
+    "subtitle": "Lines removed since v{from} are red, added lines are green.",
+    "noChanges": "No differences.",
+    "loading": "Loading version…",
+    "loadError": "Could not load this version.",
+    "field": {
+      "name": "Name",
+      "description": "Description",
+      "type": "Type"
+    },
+    "body": "Body",
+    "close": "Close"
+  },
+  "import": {
+    "title": "Import skill",
+    "subtitle": "Upload a .md file or a .zip containing SKILL.md. Nothing is saved until you confirm.",
+    "chooseFile": "Skill file",
+    "fileHint": "Only SKILL.md is read from a .zip — scripts and other files are ignored, never executed.",
+    "parsing": "Reading file…",
+    "failed": "Could not parse this file",
+    "name": "Name",
+    "description": "Description",
+    "type": "Type",
+    "body": "Body (rendered)",
+    "ignoredTitle": "Ignored files",
+    "reason": {
+      "executable": "executable — not run",
+      "not-skill-core": "not part of the skill — not read",
+      "nested-archive": "nested archive — not extracted"
+    },
+    "warningsTitle": "Warnings",
+    "conflict": "A skill with this name already exists — rename it to import.",
+    "back": "Choose another file",
+    "save": "Save skill",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "savedToast": "Imported \"{name}\""
+  },
+  "delete": {
+    "title": "Delete skill?",
+    "body": "\"{name}\" will be deleted permanently, including its version history.",
+    "usedBy": "It is linked to {count, plural, one {# agent} other {# agents}} and will be unlinked:",
+    "unused": "No agents use this skill.",
+    "loadingAgents": "Checking linked agents…",
+    "confirm": "Delete skill",
+    "deleting": "Deleting…",
+    "cancel": "Cancel",
+    "deletedToast": "Deleted \"{name}\""
+  },
+  "saveVersion": {
+    "title": "Save v{from} → v{to}",
+    "subtitle": "Name this version and review what changed since the last save.",
+    "versionTitle": "Version title",
+    "versionTitlePlaceholder": "Version name",
+    "versionTitleHint": "Optional — shown in the Versions tab.",
+    "confirm": "Save as v{version}",
+    "saving": "Saving…",
+    "cancel": "Cancel"
   }
 }

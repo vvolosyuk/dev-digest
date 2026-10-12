@@ -4,8 +4,12 @@
 "use client";
 
 import React from "react";
-import { AppFrame, CommandPalette, ShortcutsHelp, type Crumb } from "@devdigest/ui";
+import { AppFrame, CommandPalette, NAV, SHORTCUTS, ShortcutsHelp, type Crumb } from "@devdigest/ui";
 import { useGlobalShortcuts, useShellCommands, useShellContext } from "./hooks";
+import { applyNavOverride } from "./helpers";
+
+// L02: local nav override — "SKILLS LAB" group (Skills + Agents). See helpers.
+applyNavOverride(NAV, SHORTCUTS);
 
 export function AppShell({ children, crumb }: { children: React.ReactNode; crumb?: Crumb[] }) {
   const [paletteOpen, setPaletteOpen] = React.useState(false);

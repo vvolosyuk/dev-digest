@@ -1,13 +1,14 @@
 import type { Container } from '../../platform/container.js';
-import type { Provider, Review, RunTrace, UnifiedDiff } from '@devdigest/shared';
+import type { PromptAssembly, Provider, Review, RunTrace, UnifiedDiff } from '@devdigest/shared';
 import { reviewPullRequest, countBlockers } from '@devdigest/reviewer-core';
 import { RunLogger } from '../../platform/run-logger.js';
 import * as schema from '../../db/schema.js';
 import type { AgentRow } from '../../db/rows.js';
 import type { ReviewRepository, FindingRow, PullRow, ReviewRow } from './repository.js';
 import { REVIEW_STRATEGY } from './constants.js';
-import { taskLine } from './helpers.js';
+import { joinSkillBlocks, slotTokens, taskLine } from './helpers.js';
 import { loadDiff } from './diff-loader.js';
+import { formatSkillBlock } from '../_shared/skill-prompt.js';
 
 /** Thrown by a run when the user cancels it mid-flight (between map files). */
 export class RunCancelledError extends Error {
@@ -153,7 +154,16 @@ export class ReviewRunExecutor {
 
     runLog.info(`Starting review with agent "${agent.name}" (${agent.provider}/${agent.model})`);
 
+    // The `## Skills / rules` body, kept outside the try so the fail-path trace
+    // records what was (or would have been) injected.
+    let skillsBlock: string | null = null;
+
     try {
+      // L02 — skills linked to the agent (link enabled AND skill enabled), in
+      // link order, rendered as the blocks reviewer-core injects verbatim.
+      const skillBlocks = await this.loadSkillBlocks(agent.id, runLog);
+      skillsBlock = joinSkillBlocks(skillBlocks);
+
       // Resolve the agent's LLM provider. (container.llm throws if the provider
       // key is missing — caught below and persisted as a failed run.)
       const llm = await runLog.step(
@@ -196,6 +206,10 @@ export class ReviewRunExecutor {
         // Per-agent review strategy (configured in the Agent editor); falls back
         // to the studio default. single-pass = whole diff in one call.
         strategy: agent.strategy ?? REVIEW_STRATEGY,
+        // L02 — formatted skill blocks; reviewer-core joins them under
+        // `## Skills / rules` (and repeats them in every map-reduce chunk).
+        // Omitted when none are active so the prompt matches the no-skills shape.
+        ...(skillBlocks.length > 0 ? { skills: skillBlocks } : {}),
         // T1.3 — pass the callers digest only when we built one. assemblePrompt
         // omits the section when this is empty/undefined.
         ...(callersDigest ? { callers: callersDigest } : {}),
@@ -271,7 +285,7 @@ export class ReviewRunExecutor {
           findings: findingRows.length,
           grounding,
         },
-        prompt_assembly: outcome.assembly,
+        prompt_assembly: this.withSlotTokens(outcome.assembly),
         tool_calls: outcome.chunks.map((c) => ({
           tool: 'review_file',
           args: c.label,
@@ -310,7 +324,10 @@ export class ReviewRunExecutor {
         })
         .catch(() => undefined);
       await this.repo
-        .saveRunTrace(runId, this.traceFromBuffer(runId, pull, agent, '0/0 passed', Date.now() - start))
+        .saveRunTrace(
+          runId,
+          this.traceFromBuffer(runId, pull, agent, '0/0 passed', Date.now() - start, skillsBlock),
+        )
         .catch(() => undefined);
       this.container.runBus.complete(runId);
       throw err;
@@ -405,9 +422,59 @@ export class ReviewRunExecutor {
   }
 
   /**
+   * L02 — load the agent's active skills (link enabled AND skill enabled, in
+   * link order) and render each with `formatSkillBlock`. Logs one Live Log
+   * line: `Loaded N skills: a, b (+T tokens)` with per-skill
+   * `{id, name, version, tokens}` data, or `No skills enabled`.
+   */
+  private async loadSkillBlocks(agentId: string, runLog: RunLogger): Promise<string[]> {
+    const skills = await this.container.skillsRepo.activeForAgent(agentId);
+    if (skills.length === 0) {
+      runLog.info('No skills enabled');
+      return [];
+    }
+    const blocks = skills.map((s) =>
+      formatSkillBlock({
+        name: s.name,
+        type: s.type,
+        version: s.version,
+        description: s.description,
+        body: s.body,
+      }),
+    );
+    const count = (text: string) => this.container.tokenizer.count(text);
+    const total = count(joinSkillBlocks(blocks) ?? '');
+    // RunEventKind is a closed enum (info/tool/result/error), so this is an
+    // `info` event; the structured payload carries the per-skill breakdown.
+    runLog.info(
+      `Loaded ${skills.length} skill${skills.length === 1 ? '' : 's'}: ${skills
+        .map((s) => s.name)
+        .join(', ')} (+${total} tokens)`,
+      {
+        skills: skills.map((s, i) => ({
+          id: s.id,
+          name: s.name,
+          version: s.version,
+          tokens: count(blocks[i]!),
+        })),
+      },
+    );
+    return blocks;
+  }
+
+  /** Attach per-slot token counts (`assembly.tokens`) for the run trace. */
+  private withSlotTokens(assembly: PromptAssembly): PromptAssembly {
+    return {
+      ...assembly,
+      tokens: slotTokens(assembly, (text) => this.container.tokenizer.count(text)),
+    };
+  }
+
+  /**
    * A minimal RunTrace whose `log` is the run's full SSE buffer — persisted on
    * failure/cancel (and pre-work failures) so the events (and WHY it failed)
-   * survive a reload, not just the in-memory stream.
+   * survive a reload, not just the in-memory stream. `skills` is the joined
+   * skills block when it was loaded before the failure (else null).
    */
   private traceFromBuffer(
     runId: string,
@@ -415,6 +482,7 @@ export class ReviewRunExecutor {
     agent: AgentRow,
     grounding: string,
     durationMs = 0,
+    skills: string | null = null,
   ): RunTrace {
     return {
       config: {
@@ -426,7 +494,13 @@ export class ReviewRunExecutor {
         source: 'local',
       },
       stats: { duration_ms: durationMs, tokens_in: 0, tokens_out: 0, cost_usd: 0, findings: 0, grounding },
-      prompt_assembly: { system: agent.systemPrompt, skills: null, memory: null, specs: null, user: '' },
+      prompt_assembly: this.withSlotTokens({
+        system: agent.systemPrompt,
+        skills,
+        memory: null,
+        specs: null,
+        user: '',
+      }),
       tool_calls: [],
       raw_output: '',
       memory_pulled: [],

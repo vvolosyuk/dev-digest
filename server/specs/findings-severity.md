@@ -30,7 +30,7 @@ closes it.
    `RunSummary.blockers` / `countBlockers()` from `reviewer-core`; this
    feature only adds the per-severity breakdown alongside it.
 4. **No vendor edits.** `server/src/vendor/shared` and `client/src/vendor/shared`
-   are "do not touch" per `CLAUDE.md`. This is possible because
+   are "do not touch" per `AGENTS.md`. This is possible because
    `GET /repos/:id/pulls` declares no Fastify response schema — its handler's
    return type is a plain TS annotation, not a runtime-validated/stripped Zod
    shape — so the new field is added via a locally-defined intersection type

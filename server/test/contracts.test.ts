@@ -15,6 +15,10 @@ import {
   Settings,
   Repo,
   PrDetail,
+  Skill,
+  AgentSkillLink,
+  PromptAssembly,
+  Agent,
 } from '@devdigest/shared';
 
 /**
@@ -206,5 +210,60 @@ describe('platform DTOs', () => {
         commits: [],
       }),
     ).not.toThrow();
+  });
+});
+
+/**
+ * L02 — every field added for Skills is optional/defaulted, so pre-L02 payloads
+ * (old run_traces JSONB, old fixtures, old clients) keep parsing.
+ */
+describe('L02 skills contracts are backwards-compatible', () => {
+  it('Skill without agent_count / updated_at', () => {
+    const s = Skill.parse({
+      id: 's1',
+      name: 'no-secrets',
+      description: 'Flag hardcoded secrets.',
+      type: 'security',
+      source: 'manual',
+      body: 'Never commit keys.',
+      enabled: true,
+      version: 1,
+    });
+    expect(s.agent_count).toBeUndefined();
+    expect(s.updated_at).toBeUndefined();
+  });
+
+  it('AgentSkillLink without enabled defaults to enabled: true', () => {
+    const l = AgentSkillLink.parse({ agent_id: 'a1', skill_id: 's1', order: 0 });
+    expect(l.enabled).toBe(true);
+    expect(AgentSkillLink.parse({ agent_id: 'a1', skill_id: 's1', order: 1, enabled: false }).enabled).toBe(
+      false,
+    );
+  });
+
+  it('PromptAssembly without tokens (and with per-slot tokens)', () => {
+    expect(PromptAssembly.parse({ system: 's', user: 'u' }).tokens).toBeUndefined();
+    const withTokens = PromptAssembly.parse({
+      system: 's',
+      skills: 'k',
+      user: 'u',
+      tokens: { system: 1, skills: 1, user: 1 },
+    });
+    expect(withTokens.tokens).toEqual({ system: 1, skills: 1, user: 1 });
+    expect(() => PromptAssembly.parse({ system: 's', user: 'u', tokens: { system: 1.5 } })).toThrow();
+  });
+
+  it('Agent without skill_count', () => {
+    const a = Agent.parse({
+      id: 'a1',
+      name: 'Security Reviewer',
+      description: '',
+      provider: 'openai',
+      model: 'gpt-4.1',
+      system_prompt: 'p',
+      enabled: true,
+      version: 1,
+    });
+    expect(a.skill_count).toBeUndefined();
   });
 });

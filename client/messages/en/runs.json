@@ -52,6 +52,8 @@
       "user": "User / diff (dynamic)",
       "copy": "Copy",
       "fullscreen": "Open fullscreen",
+      "tokens": "{count, plural, one {# token} other {# tokens}}",
+      "tokensAdded": "+{count, plural, one {# token} other {# tokens}}",
       "search": "Search in this block…",
       "noMatches": "No matches for “{q}”."
     },

@@ -1,6 +1,6 @@
 # client docs
 
-Design notes and ADRs for `@devdigest/web`. Read from `client/CLAUDE.md` when relevant.
+Design notes and ADRs for `@devdigest/web`. Read from `client/AGENTS.md` when relevant.
 
 ## ADRs
 
