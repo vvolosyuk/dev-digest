@@ -29,6 +29,8 @@ import type { RepoIntel } from '../modules/repo-intel/types.js';
 import { RepoIntelService } from '../modules/repo-intel/service.js';
 import { type DepGraph, DepCruiseGraph } from '../adapters/depgraph/index.js';
 import { type Tokenizer, TiktokenTokenizer } from '../adapters/tokenizer/index.js';
+import { type RepoDocReader, SimpleGitDocReader } from '../adapters/repo-docs/index.js';
+import { IntentService } from '../modules/intent/service.js';
 
 /**
  * DI container. One per app instance. Holds config, db, the JobRunner,
@@ -51,6 +53,8 @@ export interface ContainerOverrides {
   /** repo-intel T3 adapters — only the indexer pipeline reads these. */
   depgraph?: DepGraph;
   tokenizer?: Tokenizer;
+  /** Reads linked markdown docs at the PR head SHA (intent layer). */
+  repoDocs?: RepoDocReader;
 }
 
 export class Container {
@@ -76,6 +80,8 @@ export class Container {
   private _depgraph?: DepGraph;
   private _tokenizer?: Tokenizer;
   private _priceBook?: PriceBook;
+  private _repoDocs?: RepoDocReader;
+  private _intent?: IntentService;
 
   constructor(config: AppConfig, db: Db, private overrides: ContainerOverrides = {}) {
     this.config = config;
@@ -129,6 +135,18 @@ export class Container {
     if (this.overrides.tokenizer) return this.overrides.tokenizer;
     this._tokenizer ??= new TiktokenTokenizer();
     return this._tokenizer;
+  }
+
+  /** `git show <headSha>:<path>` reader for linked plan/spec docs (intent layer). */
+  get repoDocs(): RepoDocReader {
+    if (this.overrides.repoDocs) return this.overrides.repoDocs;
+    this._repoDocs ??= new SimpleGitDocReader(this.git);
+    return this._repoDocs;
+  }
+
+  /** PR intent derivation (gather sources → cheap-model classify → persist). */
+  get intent(): IntentService {
+    return (this._intent ??= new IntentService(this));
   }
 
   /**

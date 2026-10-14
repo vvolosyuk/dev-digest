@@ -5,6 +5,27 @@
     "risks": "Risks",
     "history": "PR history"
   },
+  "intent": {
+    "title": "Intent",
+    "inScope": "IN SCOPE",
+    "outOfScope": "OUT OF SCOPE",
+    "riskAreas": "RISK AREAS",
+    "sources": "SOURCES",
+    "none": "Nothing stated.",
+    "notFetched": "not fetched",
+    "confidence": {
+      "high": "High confidence",
+      "medium": "Medium confidence",
+      "low": "Low confidence"
+    },
+    "lowHint": "Inferred from branch, commits and changed files — no description or linked docs",
+    "stale": "Stale",
+    "recompute": "Recompute",
+    "derive": "Derive intent",
+    "empty": "No intent derived yet",
+    "failed": "Couldn't derive the intent.",
+    "computed": "computed {time}"
+  },
   "noRisks": "No notable risks flagged.",
   "noHistory": "No prior PRs overlap these files.",
   "overlap": "{count} overlap",

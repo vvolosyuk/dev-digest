@@ -133,6 +133,29 @@ export async function seed(db: Db): Promise<{ workspaceId: string; userId: strin
       author: 'marisa.koch',
     });
 
+    // Demo derived intent so the Overview tab's Intent card has content before
+    // any LLM is configured (no input_hash → shows as computed elsewhere/"stale").
+    await db.insert(t.prIntent).values({
+      prId: pr!.id,
+      intent: 'Add rate limiting to the public API endpoints to prevent abuse from unauthenticated clients.',
+      inScope: ['Token-bucket rate limiter middleware', 'Limits on public webhook and user endpoints'],
+      outOfScope: ['Authenticated or internal API rate limits', 'Billing and quota changes'],
+      confidence: 'medium',
+      sources: [
+        { kind: 'description', ref: 'description', fetched: true },
+        { kind: 'branch', ref: 'feat/rate-limit-public', fetched: true },
+        { kind: 'files', ref: '4 file(s)', fetched: true },
+      ],
+      riskAreas: [
+        { label: 'Auth surface touched', kind: 'auth', source: 'heuristic' },
+        { label: 'Configuration changed', kind: 'config', source: 'heuristic' },
+      ],
+      provider: 'seed',
+      model: 'seed',
+      headSha: 'a1b2c3d4e5f6',
+      computedAt: new Date(),
+    });
+
     // a sample review + findings so the PR shows results before the first run
     const [review] = await db
       .insert(t.reviews)

@@ -46,3 +46,57 @@ export type FindingsBySeverity = Record<"CRITICAL" | "WARNING" | "SUGGESTION", n
  *  matching local `PrMetaWithFindings` type) — this route has no Fastify
  *  response schema, so extending the shape doesn't require touching vendor. */
 export type PrMetaWithFindings = PrMeta & { findings_by_severity: FindingsBySeverity };
+
+// ---- PR intent (GET/POST /pulls/:id/intent) ----
+// Mirrors the server's local `intent/schemas.ts` (the vendored `Intent` contract
+// is extended locally on both sides rather than edited). New fields are optional.
+import type { Intent } from "@devdigest/shared";
+
+export type IntentConfidence = "high" | "medium" | "low";
+
+export type IntentSourceKind =
+  | "title"
+  | "description"
+  | "issue"
+  | "doc"
+  | "branch"
+  | "commits"
+  | "files"
+  | "risk_signal"
+  | "ticket_key"
+  | "external_link";
+
+export interface IntentSource {
+  kind: IntentSourceKind;
+  ref: string;
+  fetched: boolean;
+  chars?: number | null;
+  note?: string | null;
+}
+
+export interface IntentRiskArea {
+  label: string;
+  kind: string;
+  source: "heuristic" | "model";
+}
+
+export type PrIntentRecord = Intent & {
+  confidence?: IntentConfidence | null;
+  sources?: IntentSource[] | null;
+  risk_areas?: IntentRiskArea[] | null;
+  provider?: string | null;
+  model?: string | null;
+  head_sha?: string | null;
+  tokens_in?: number | null;
+  tokens_out?: number | null;
+  cost_usd?: number | null;
+  computed_at?: string | null;
+};
+
+export interface IntentResponse {
+  intent: PrIntentRecord | null;
+  /** Stored intent was computed from different inputs/model than the current ones. */
+  stale: boolean;
+  /** The feature model a (re)compute would use right now. */
+  model: { provider: string; model: string };
+}

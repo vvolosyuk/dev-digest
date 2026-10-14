@@ -9,6 +9,8 @@
 - 2026-09-20 — Per-PR aggregation across multiple agent runs (e.g. summing cost) should query `agent_runs` directly (it has a nullable `prId` FK) rather than mirroring the "latest row wins" pattern `pulls/routes.ts`'s existing Score column uses over `reviews`. The `reviews` table has no duration/tokens/cost columns at all — those live only on `agent_runs`, joined to a review via `reviews.runId` (no FK constraint, just a plain uuid column). (`server/src/modules/pulls/routes.ts`, `server/src/modules/reviews/repository/run.repo.ts`)
 - 2026-09-28 — When you need to add a field to a GET response and CLAUDE.md's "do not touch `server/src/vendor/shared`" blocks extending the obvious Zod contract, check whether that specific `app.get(...)` registration even declares a `schema: { response: ... }` block first. `GET /repos/:id/pulls` (`server/src/modules/pulls/routes.ts:33`, no response schema — only `schema: { params: IdParams }`) has no runtime serialization stripping extra keys, so a locally-defined intersection type (`PrMetaWithFindings = PrMeta & {...}`, same file, line ~15) is enough — no vendor edit, no `.extend()` on the imported schema needed. This only works because THIS route has no response schema; don't assume it generalizes to routes that do declare one.
 
+- 2026-10-13 — When you add a structured-output (`completeStructured`) schema, make every field required (no `.optional()`/`.default()`; use `.nullable()` if needed): `toJsonSchema` goes through `zodResponseFormat` and OpenRouter is sent `strict: true`. Also `OpenRouterProvider` (reviewer-core/src/llm/openrouter.ts) ignores `req.timeoutMs` (client-level 90s + SDK retries), so wrap the call in `withTimeout` (platform/resilience.ts) if you need a hard bound — see `modules/intent/classifier.ts`. It does not send `provider.require_parameters`.
+
 ## Tool & Library Notes
 
 ## Recurring Errors & Fixes
@@ -19,6 +21,8 @@
 
 - 2026-09-20/21: Added run cost tracking end-to-end — `agent_runs.cost_usd` column + migration, PR-list `SUM(...) GROUP BY prId`, and the run trace `stats.cost_usd` — spec at `server/specs/run-cost.md`. `reviewer-core`'s `reviewPullRequest()` already computed per-run `costUsd` (from OpenRouter's `usage.cost`); the server was silently discarding it — `run-executor.ts` destructured it out of the outcome and never persisted or forwarded it. Worth checking `ReviewOutcome`/`StructuredResult`'s full shape in `reviewer-core` for other computed-but-unplumbed fields before assuming a "new" feature needs new computation, not just new wiring.
 - 2026-09-28: Added the PR list's Findings column + per-run Timeline severity block (`server/specs/findings-severity.md`) — this was the exact gap `run-cost.md`'s "Out of scope" section had deferred. `findings_by_severity` is computed live (no migration) by grouping `findings` joined to `reviews` by `prId` in JS and tallying via the already-existing, already-unit-tested `rollupSeverities()` (`server/src/modules/pulls/status.ts`), which was defined but never wired into the route before this session.
+
+- 2026-10-13: Implemented the L03 intent layer (`modules/intent/`, `adapters/repo-docs/`, migration 0011 on `pr_intent`). The `.claude/hooks/guard.mjs` implementer guard blocked the user-approved vendored `platform.ts` default change (both copies) — a user's chat approval does not lift it, so the `review_intent` default is still `openai/gpt-4.1` until someone with permission edits it.
 
 ## Open Questions
 

@@ -1,0 +1,92 @@
+import type { CSSProperties } from "react";
+
+export const s = {
+  card: {
+    border: "1px solid var(--border)",
+    borderRadius: 8,
+    background: "var(--bg-elevated)",
+    padding: 18,
+    display: "flex",
+    flexDirection: "column",
+    gap: 16,
+  } satisfies CSSProperties,
+  header: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    flexWrap: "wrap",
+  } satisfies CSSProperties,
+  spacer: { flex: 1 } satisfies CSSProperties,
+  quote: {
+    margin: 0,
+    padding: "2px 0 2px 14px",
+    borderLeft: "3px solid var(--accent)",
+    fontSize: 15,
+    lineHeight: 1.5,
+    color: "var(--text-primary)",
+  } satisfies CSSProperties,
+  columns: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: 24,
+  } satisfies CSSProperties,
+  colTitle: {
+    fontSize: 12,
+    fontWeight: 700,
+    letterSpacing: "0.07em",
+    color: "var(--text-muted)",
+    margin: "0 0 8px",
+  } satisfies CSSProperties,
+  list: {
+    listStyle: "none",
+    margin: 0,
+    padding: 0,
+    display: "flex",
+    flexDirection: "column",
+    gap: 6,
+  } satisfies CSSProperties,
+  item: {
+    display: "flex",
+    alignItems: "flex-start",
+    gap: 8,
+    fontSize: 13.5,
+    lineHeight: 1.45,
+    color: "var(--text-secondary)",
+  } satisfies CSSProperties,
+  chips: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 8,
+  } satisfies CSSProperties,
+  hint: {
+    fontSize: 12.5,
+    color: "var(--text-muted)",
+    margin: 0,
+  } satisfies CSSProperties,
+  footer: {
+    borderTop: "1px solid var(--border)",
+    paddingTop: 12,
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
+  } satisfies CSSProperties,
+  sourceRef: {
+    fontFamily: "var(--font-mono, monospace)",
+    fontSize: 12,
+    color: "var(--text-secondary)",
+    wordBreak: "break-all",
+  } satisfies CSSProperties,
+  sourceKind: {
+    fontSize: 11.5,
+    fontWeight: 600,
+    textTransform: "uppercase",
+    letterSpacing: "0.05em",
+    color: "var(--text-muted)",
+    minWidth: 92,
+  } satisfies CSSProperties,
+  error: {
+    fontSize: 13,
+    color: "var(--crit)",
+    margin: 0,
+  } satisfies CSSProperties,
+} as const;

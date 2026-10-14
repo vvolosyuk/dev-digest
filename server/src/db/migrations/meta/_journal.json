@@ -78,6 +78,13 @@
       "when": 1789938123740,
       "tag": "0010_milky_raza",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1791847913471,
+      "tag": "0011_cold_killer_shrike",
+      "breakpoints": true
     }
   ]
 }

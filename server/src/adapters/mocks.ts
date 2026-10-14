@@ -33,6 +33,7 @@ import type {
   SecretKey,
 } from '@devdigest/shared';
 import { parseUnifiedDiff } from './git/diff-parser.js';
+import { type RepoDocReader, isSafeRef, normalizeDocPath } from './repo-docs/index.js';
 
 /**
  * Deterministic MOCK adapters for tests/dev — NO real network. Each mirrors the
@@ -292,6 +293,23 @@ export class MockGitClient implements GitClient {
   }
   async readFile(_repo: RepoRef, path: string): Promise<string> {
     return this.opts.files?.[path] ?? '';
+  }
+}
+
+// ---------- Mock RepoDocReader ----------
+export class MockRepoDocReader implements RepoDocReader {
+  public calls: { repo: RepoRef; ref: string; path: string }[] = [];
+
+  /** `files` is keyed by repo-relative path (as the reader would normalise it). */
+  constructor(private files: Record<string, string> = {}) {}
+
+  async readAtRef(repo: RepoRef, ref: string, path: string, maxBytes: number): Promise<string | null> {
+    this.calls.push({ repo, ref, path });
+    if (!isSafeRef(ref)) return null;
+    const safe = normalizeDocPath(path);
+    if (safe === null) return null;
+    const text = this.files[safe];
+    return text === undefined ? null : text.slice(0, maxBytes);
   }
 }
 

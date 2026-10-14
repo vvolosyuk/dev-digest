@@ -64,3 +64,34 @@ describe('assemblePrompt — ## PR description', () => {
     expect((assembly.pr_description as string).length).toBe(4000);
   });
 });
+
+describe('assemblePrompt — ## Derived PR intent', () => {
+  it('renders wrapped, after the PR description and before the diff', () => {
+    const user = userOf({
+      system: 'sys',
+      diff: 'DIFF',
+      prDescription: 'Adds rate limiting.',
+      skills: ['SKILL-BODY'],
+      intent: 'Intent: add rate limiting',
+    });
+    expect(user).toContain('## Derived PR intent');
+    expect(user).toContain('<untrusted source="derived-intent">');
+    expect(user).toContain('Intent: add rate limiting');
+    expect(user.indexOf('## PR description')).toBeLessThan(user.indexOf('## Derived PR intent'));
+    expect(user.indexOf('## Derived PR intent')).toBeLessThan(user.indexOf('## Skills / rules'));
+    expect(user.indexOf('## Derived PR intent')).toBeLessThan(user.indexOf('## Diff to review'));
+  });
+
+  it('omits the section when undefined or blank (prompt identical to today)', () => {
+    const base = userOf({ system: 'sys', diff: 'DIFF' });
+    expect(base).not.toContain('Derived PR intent');
+    expect(userOf({ system: 'sys', diff: 'DIFF', intent: '   ' })).toBe(base);
+    expect(userOf({ system: 'sys', diff: 'DIFF', intent: undefined })).toBe(base);
+  });
+
+  it('truncates to the 2k cap', () => {
+    const user = userOf({ system: 'sys', diff: 'D', intent: 'y'.repeat(5000) });
+    expect(user).toContain('y'.repeat(2000));
+    expect(user).not.toContain('y'.repeat(2001));
+  });
+});
